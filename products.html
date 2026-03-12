@@ -36,6 +36,11 @@ border:none;
 color:white;
 border-radius:6px;
 cursor:pointer;
+font-size:16px;
+}
+
+button:hover{
+background:#16a34a;
 }
 
 .product{
@@ -71,15 +76,18 @@ border-radius:8px;
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
 const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const SUPABASE_KEY = "sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiW8"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const { createClient } = supabase
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY)
+
 
 async function addProduct(){
 
@@ -87,7 +95,12 @@ const name = document.getElementById("name").value
 const barcode = document.getElementById("barcode").value
 const price = document.getElementById("price").value
 
-await supabase
+if(!name || !barcode || !price){
+alert("الرجاء إدخال جميع البيانات")
+return
+}
+
+await supabaseClient
 .from("products")
 .insert([
 {
@@ -97,13 +110,18 @@ price:price
 }
 ])
 
+document.getElementById("name").value=""
+document.getElementById("barcode").value=""
+document.getElementById("price").value=""
+
 loadProducts()
 
 }
 
+
 async function loadProducts(){
 
-const {data} = await supabase
+const { data } = await supabaseClient
 .from("products")
 .select("*")
 
@@ -124,6 +142,7 @@ Price: ${p.price}
 })
 
 }
+
 
 loadProducts()
 
