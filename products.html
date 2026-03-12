@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="ar">
+
+<head>
+<meta charset="UTF-8">
+<title>إدارة المنتجات</title>
+
+<style>
+
+body{
+font-family:Arial;
+direction:rtl;
+background:#0f172a;
+color:white;
+padding:40px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+input{
+padding:10px;
+margin:5px;
+border-radius:6px;
+border:none;
+width:200px;
+}
+
+button{
+padding:10px 20px;
+background:#22c55e;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+.product{
+background:#1e293b;
+padding:15px;
+margin:10px 0;
+border-radius:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>إدارة المنتجات</h1>
+
+<h3>إضافة منتج</h3>
+
+<input id="name" placeholder="اسم المنتج">
+<input id="barcode" placeholder="الباركود">
+<input id="price" placeholder="السعر">
+
+<br><br>
+
+<button onclick="addProduct()">إضافة المنتج</button>
+
+<h3>المنتجات</h3>
+
+<div id="products"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
+
+const SUPABASE_KEY = "sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiW8"
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+async function addProduct(){
+
+const name = document.getElementById("name").value
+const barcode = document.getElementById("barcode").value
+const price = document.getElementById("price").value
+
+await supabase
+.from("products")
+.insert([
+{
+name:name,
+barcode:barcode,
+price:price
+}
+])
+
+loadProducts()
+
+}
+
+async function loadProducts(){
+
+const {data} = await supabase
+.from("products")
+.select("*")
+
+const container = document.getElementById("products")
+
+container.innerHTML=""
+
+data.forEach(p=>{
+
+container.innerHTML += `
+<div class="product">
+<b>${p.name}</b><br>
+Barcode: ${p.barcode}<br>
+Price: ${p.price}
+</div>
+`
+
+})
+
+}
+
+loadProducts()
+
+</script>
+
+</body>
+</html>
