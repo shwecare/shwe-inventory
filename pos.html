@@ -109,14 +109,14 @@ margin-top:10px;
 
 <script>
 
-const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
+const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-let products = []
-let cart = []
+let products=[]
+let cart=[]
 
 loadProducts()
 
@@ -131,7 +131,7 @@ console.log(error)
 return
 }
 
-products = data
+products=data
 
 displayProducts(products)
 
@@ -139,15 +139,15 @@ displayProducts(products)
 
 function displayProducts(list){
 
-let container = document.getElementById("products")
+let container=document.getElementById("products")
 
-container.innerHTML = ""
+container.innerHTML=""
 
 list.forEach(p=>{
 
-container.innerHTML += `
+container.innerHTML+=`
 
-<div class="product" onclick="addToCart(${p.id})">
+<div class="product" onclick="addToCart('${p.id}')">
 
 <b>${p.name}</b>
 
@@ -165,9 +165,9 @@ ${p.price}
 
 document.getElementById("search").addEventListener("input",function(){
 
-let text = this.value.toLowerCase()
+let text=this.value.toLowerCase()
 
-let filtered = products.filter(p => 
+let filtered=products.filter(p=>
 p.name && p.name.toLowerCase().includes(text)
 )
 
@@ -177,7 +177,7 @@ displayProducts(filtered)
 
 function addToCart(id){
 
-let product = products.find(p=>p.id===id)
+let product=products.find(p=>p.id==id)
 
 cart.push(product)
 
@@ -187,17 +187,17 @@ renderCart()
 
 function renderCart(){
 
-let container = document.getElementById("cart")
+let container=document.getElementById("cart")
 
-container.innerHTML = ""
+container.innerHTML=""
 
-let total = 0
+let total=0
 
 cart.forEach(p=>{
 
-total += Number(p.price)
+total+=Number(p.price)
 
-container.innerHTML += `
+container.innerHTML+=`
 
 <div class="cart-item">
 
@@ -209,21 +209,25 @@ ${p.name} - ${p.price}
 
 })
 
-document.getElementById("total").innerText = "الإجمالي: " + total
+document.getElementById("total").innerText="الإجمالي: "+total
 
 }
 
 function completeSale(){
 
-alert("تم إتمام البيع")
+alert("تم البيع")
 
-cart = []
+cart=[]
 
 renderCart()
 
 }
 
 </script>
+
+</body>
+
+</html>
 
 </body>
 
