@@ -34,10 +34,11 @@ padding:20px;
 
 .search{
 width:100%;
-padding:10px;
+padding:12px;
 border:none;
 border-radius:6px;
 margin-bottom:20px;
+font-size:16px;
 }
 
 .grid{
@@ -48,10 +49,11 @@ gap:15px;
 
 .product{
 background:#1e293b;
-padding:20px;
-border-radius:10px;
+padding:30px;
+border-radius:12px;
 text-align:center;
 cursor:pointer;
+font-size:20px;
 }
 
 .product:hover{
@@ -60,12 +62,25 @@ background:#334155;
 
 .item{
 background:#0f172a;
-padding:10px;
+padding:12px;
 margin-bottom:10px;
 border-radius:6px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+}
+
+.qty{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.qty button{
+width:30px;
+height:30px;
+padding:0;
+font-size:18px;
 }
 
 .remove{
@@ -77,19 +92,25 @@ font-weight:bold;
 button{
 background:#22c55e;
 border:none;
-padding:12px;
+padding:18px;
 width:100%;
 color:white;
-border-radius:8px;
-font-size:16px;
+border-radius:10px;
+font-size:20px;
 cursor:pointer;
+margin-top:10px;
+}
+
+.clear{
+background:#ef4444;
 }
 
 select{
 width:100%;
-padding:10px;
+padding:12px;
 margin:10px 0;
 border-radius:6px;
+font-size:16px;
 }
 
 </style>
@@ -122,6 +143,8 @@ border-radius:6px;
 </select>
 
 <button onclick="finishSale()">إتمام البيع</button>
+
+<button class="clear" onclick="clearCart()">تفريغ الفاتورة</button>
 
 </div>
 
@@ -226,10 +249,41 @@ renderCart();
 
 }
 
+function increaseQty(id){
+
+let item=cart.find(i=>i.id===id);
+
+item.quantity++;
+
+renderCart();
+
+}
+
+function decreaseQty(id){
+
+let item=cart.find(i=>i.id===id);
+
+item.quantity--;
+
+if(item.quantity<=0){
+cart=cart.filter(i=>i.id!==id);
+}
+
+renderCart();
+
+}
+
 function removeItem(id){
 
 cart=cart.filter(i=>i.id!==id);
 
+renderCart();
+
+}
+
+function clearCart(){
+
+cart=[];
 renderCart();
 
 }
@@ -247,8 +301,21 @@ total+=sum;
 
 html+=`
 <div class="item">
-<span>${item.name} × ${item.quantity}</span>
+
+<span>${item.name}</span>
+
+<div class="qty">
+
+<button onclick="increaseQty('${item.id}')">+</button>
+
+<span>${item.quantity}</span>
+
+<button onclick="decreaseQty('${item.id}')">-</button>
+
 <span class="remove" onclick="removeItem('${item.id}')">✖</span>
+
+</div>
+
 </div>
 `;
 
