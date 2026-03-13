@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+
 <meta charset="UTF-8">
-<title>POS نظام البيع</title>
+<title>نظام البيع</title>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
 background:#0f172a;
 color:white;
-margin:0;
-direction:rtl;
-}
-
-.container{
 display:flex;
 height:100vh;
+direction:rtl;
 }
 
 .products{
@@ -35,46 +33,59 @@ padding:20px;
 .search{
 width:100%;
 padding:10px;
-margin-bottom:20px;
-border-radius:6px;
 border:none;
+border-radius:6px;
+margin-bottom:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
 }
 
 .product{
 background:#1e293b;
 padding:20px;
-margin:10px;
-border-radius:8px;
-cursor:pointer;
+border-radius:10px;
 text-align:center;
-display:inline-block;
-width:160px;
+cursor:pointer;
 }
 
-.cart-item{
+.product:hover{
+background:#334155;
+}
+
+.item{
 background:#0f172a;
 padding:10px;
-margin:5px 0;
+margin-bottom:10px;
 border-radius:6px;
 }
 
-.pay{
+button{
 background:#22c55e;
-color:white;
+border:none;
 padding:12px;
 width:100%;
-border:none;
-border-radius:6px;
+color:white;
+border-radius:8px;
+font-size:16px;
 cursor:pointer;
-margin-top:10px;
+}
+
+select{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:6px;
 }
 
 </style>
+
 </head>
 
 <body>
-
-<div class="container">
 
 <div class="products">
 
@@ -82,7 +93,7 @@ margin-top:10px;
 
 <input class="search" id="search" placeholder="بحث عن منتج">
 
-<div id="productList"></div>
+<div class="grid" id="products"></div>
 
 </div>
 
@@ -99,9 +110,7 @@ margin-top:10px;
 <option value="card">بطاقة</option>
 </select>
 
-<button class="pay" onclick="finishSale()">إتمام البيع</button>
-
-</div>
+<button onclick="finishSale()">إتمام البيع</button>
 
 </div>
 
@@ -109,7 +118,7 @@ margin-top:10px;
 
 const { createClient } = supabase;
 
-const db = createClient(
+const db=createClient(
 "https://zspikbjjwdnsnzxlqueq.supabase.co",
 "sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
 );
@@ -117,8 +126,22 @@ const db = createClient(
 let products=[];
 let cart=[];
 let total=0;
+let store={};
 
 loadProducts();
+loadStore();
+
+async function loadStore(){
+
+const {data}=await db
+.from("store_settings")
+.select("*")
+.limit(1)
+.single();
+
+store=data;
+
+}
 
 async function loadProducts(){
 
@@ -126,22 +149,20 @@ const {data}=await db
 .from("products")
 .select("*");
 
-products=data || [];
+products=data;
 
-renderProducts(products);
+renderProducts(data);
 
 }
 
 function renderProducts(list){
 
-const container=document.getElementById("productList");
-
-container.innerHTML="";
+let html="";
 
 list.forEach(p=>{
 
-container.innerHTML+=`
-<div class="product" onclick='addToCart(${JSON.stringify(p)})'>
+html+=`
+<div class="product" onclick="addToCart('${p.name}',${p.price})">
 ${p.name}
 <br>
 ${p.price}
@@ -150,20 +171,23 @@ ${p.price}
 
 });
 
+document.getElementById("products").innerHTML=html;
+
 }
 
-function addToCart(product){
+function addToCart(name,price){
 
-let item=cart.find(i=>i.id===product.id);
+let item=cart.find(i=>i.name===name);
 
 if(item){
+
 item.quantity++;
+
 }else{
 
 cart.push({
-id:product.id,
-name:product.name,
-price:product.price,
+name:name,
+price:price,
 quantity:1
 });
 
@@ -175,23 +199,24 @@ renderCart();
 
 function renderCart(){
 
-const container=document.getElementById("cart");
-
-container.innerHTML="";
-
+let html="";
 total=0;
 
 cart.forEach(item=>{
 
-total+=item.price*item.quantity;
+let sum=item.price*item.quantity;
 
-container.innerHTML+=`
-<div class="cart-item">
+total+=sum;
+
+html+=`
+<div class="item">
 ${item.name} × ${item.quantity}
 </div>
 `;
 
 });
+
+document.getElementById("cart").innerHTML=html;
 
 document.getElementById("total").innerText=total;
 
@@ -200,60 +225,59 @@ document.getElementById("total").innerText=total;
 async function finishSale(){
 
 if(cart.length==0){
-alert("لا توجد منتجات");
+
+alert("السلة فارغة");
+
 return;
+
 }
 
-const invoiceNumber="INV-"+Date.now();
+let invoice="INV-"+Date.now();
 
-const payment=document.getElementById("payment").value;
+let payment=document.getElementById("payment").value;
 
-const {data,error}=await db
+const {data:sale}=await db
 .from("sales")
-.insert([{
-invoice_number:invoiceNumber,
+.insert({
+
+invoice_number:invoice,
 total:total,
 payment_method:payment
-}])
-.select();
 
-if(error){
-alert("فشل حفظ الفاتورة");
-console.log(error);
-return;
-}
+})
+.select()
+.single();
 
-const saleId=data[0].id;
-
-let items=[];
-
-cart.forEach(item=>{
-items.push({
-sale_id:saleId,
-product_name:item.name,
-price:item.price,
-quantity:item.quantity
-});
-});
+for(let item of cart){
 
 await db
 .from("sale_items")
-.insert(items);
+.insert({
 
-alert("تم البيع\nرقم الفاتورة: "+invoiceNumber);
+sale_id:sale.id,
+product_name:item.name,
+price:item.price,
+quantity:item.quantity
 
-printInvoice(invoiceNumber);
+});
+
+}
+
+printInvoice(invoice);
 
 cart=[];
 renderCart();
 
+alert("تم البيع");
+
 }
 
-function printInvoice(invoiceNumber){
+function printInvoice(invoice){
 
 let rows="";
 
 cart.forEach(item=>{
+
 rows+=`
 <tr>
 <td>${item.name}</td>
@@ -262,14 +286,10 @@ rows+=`
 <td>${item.price*item.quantity}</td>
 </tr>
 `;
+
 });
 
 let win=window.open();
-
-if(!win){
-alert("المتصفح منع نافذة الطباعة");
-return;
-}
 
 win.document.write(`
 
@@ -277,23 +297,25 @@ win.document.write(`
 
 <head>
 
-<title>فاتورة</title>
-
 <style>
 
 body{
 font-family:Arial;
+width:220px;
+margin:auto;
 text-align:center;
+font-size:12px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
+margin-top:10px;
 }
 
 td,th{
-border:1px solid black;
-padding:6px;
+border-bottom:1px dashed black;
+padding:4px;
 }
 
 </style>
@@ -302,18 +324,27 @@ padding:6px;
 
 <body>
 
-<h2>فاتورة بيع</h2>
+<h2>${store.store_name}</h2>
 
-<p>رقم الفاتورة: ${invoiceNumber}</p>
+<p>${store.store_address}</p>
+
+<p>${store.store_phone}</p>
+
+<hr>
+
+<p>فاتورة بيع</p>
+
+<p>${invoice}</p>
+
 <p>${new Date().toLocaleString()}</p>
 
 <table>
 
 <tr>
 <th>المنتج</th>
-<th>الكمية</th>
-<th>السعر</th>
-<th>الإجمالي</th>
+<th>ك</th>
+<th>س</th>
+<th>ج</th>
 </tr>
 
 ${rows}
@@ -321,6 +352,10 @@ ${rows}
 </table>
 
 <h3>الإجمالي: ${total}</h3>
+
+<hr>
+
+<p>${store.receipt_message}</p>
 
 </body>
 
