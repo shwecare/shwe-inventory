@@ -35,11 +35,9 @@ border:none;
 border-radius:6px;
 cursor:pointer;
 margin:5px;
+background:#22c55e;
+color:white;
 }
-
-.add{background:#22c55e;color:white;}
-.edit{background:#3b82f6;color:white;}
-.delete{background:#ef4444;color:white;}
 
 .product{
 background:#1e293b;
@@ -65,7 +63,7 @@ border-radius:8px;
 <input id="price" placeholder="السعر">
 <input id="category" placeholder="التصنيف">
 
-<button class="add" onclick="addProduct()">إضافة المنتج</button>
+<button onclick="addProduct()">إضافة المنتج</button>
 
 <h3>المنتجات</h3>
 
@@ -81,17 +79,18 @@ const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
 loadProducts()
 
 async function loadProducts(){
 
-const { data } = await supabase
+const { data } = await supabaseClient
 .from("products")
 .select("*")
 
 let container=document.getElementById("products")
+
 container.innerHTML=""
 
 data.forEach(p=>{
@@ -107,9 +106,8 @@ container.innerHTML+=`
 
 <br>
 
-<button class="edit" onclick="updateProduct('${p.id}')">تعديل</button>
-
-<button class="delete" onclick="deleteProduct('${p.id}')">حذف</button>
+<button onclick="updateProduct('${p.id}')">تعديل</button>
+<button onclick="deleteProduct('${p.id}')">حذف</button>
 
 </div>
 
@@ -126,7 +124,7 @@ let barcode=document.getElementById("barcode").value
 let price=document.getElementById("price").value
 let category=document.getElementById("category").value
 
-await supabase
+await supabaseClient
 .from("products")
 .insert([{name,barcode,price:Number(price),category}])
 
@@ -141,14 +139,9 @@ let barcode=document.getElementById("barcode-"+id).value
 let price=document.getElementById("price-"+id).value
 let category=document.getElementById("category-"+id).value
 
-await supabase
+await supabaseClient
 .from("products")
-.update({
-name:name,
-barcode:barcode,
-price:Number(price),
-category:category
-})
+.update({name,barcode,price:Number(price),category})
 .eq("id",id)
 
 loadProducts()
@@ -157,7 +150,7 @@ loadProducts()
 
 async function deleteProduct(id){
 
-await supabase
+await supabaseClient
 .from("products")
 .delete()
 .eq("id",id)
