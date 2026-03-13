@@ -119,6 +119,8 @@ font-size:16px;
 
 <body>
 
+<input id="barcodeInput" autofocus style="position:absolute;opacity:0;">
+
 <div class="products">
 
 <h2>المنتجات</h2>
@@ -252,7 +254,6 @@ renderCart();
 function increaseQty(id){
 
 let item=cart.find(i=>i.id===id);
-
 item.quantity++;
 
 renderCart();
@@ -276,7 +277,6 @@ renderCart();
 function removeItem(id){
 
 cart=cart.filter(i=>i.id!==id);
-
 renderCart();
 
 }
@@ -322,7 +322,6 @@ html+=`
 });
 
 document.getElementById("cart").innerHTML=html;
-
 document.getElementById("total").innerText=total;
 
 }
@@ -335,7 +334,6 @@ return;
 }
 
 let invoice="INV-"+Date.now();
-
 let payment=document.getElementById("payment").value;
 
 const {data:sale}=await db
@@ -482,6 +480,37 @@ win.print();
 },500);
 
 }
+
+/* قارئ الباركود */
+
+let barcodeBuffer="";
+
+document.addEventListener("keypress",async function(e){
+
+if(e.key==="Enter"){
+
+let code=barcodeBuffer;
+barcodeBuffer="";
+
+if(code==="") return;
+
+const {data}=await db
+.from("products")
+.select("*")
+.eq("barcode",code)
+.single();
+
+if(data){
+addToCart(data.id);
+}
+
+}else{
+
+barcodeBuffer+=e.key;
+
+}
+
+});
 
 </script>
 
