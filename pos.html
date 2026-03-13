@@ -3,9 +3,7 @@
 <html lang="ar">
 
 <head>
-
 <meta charset="UTF-8">
-
 <title>POS - نظام البيع</title>
 
 <style>
@@ -111,20 +109,20 @@ margin-top:10px;
 
 <script>
 
-const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
+const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-let products=[]
-let cart=[]
+let products = []
+let cart = []
 
 loadProducts()
 
 async function loadProducts(){
 
-const { data, error } = await supabase
+const { data, error } = await supabaseClient
 .from("products")
 .select("*")
 
@@ -133,7 +131,7 @@ console.log(error)
 return
 }
 
-products=data
+products = data
 
 displayProducts(products)
 
@@ -141,13 +139,13 @@ displayProducts(products)
 
 function displayProducts(list){
 
-let container=document.getElementById("products")
+let container = document.getElementById("products")
 
-container.innerHTML=""
+container.innerHTML = ""
 
 list.forEach(p=>{
 
-container.innerHTML+=`
+container.innerHTML += `
 
 <div class="product" onclick="addToCart(${p.id})">
 
@@ -155,7 +153,7 @@ container.innerHTML+=`
 
 <br>
 
-السعر: ${p.price}
+${p.price}
 
 </div>
 
@@ -167,9 +165,9 @@ container.innerHTML+=`
 
 document.getElementById("search").addEventListener("input",function(){
 
-let text=this.value.toLowerCase()
+let text = this.value.toLowerCase()
 
-let filtered=products.filter(p=>
+let filtered = products.filter(p => 
 p.name && p.name.toLowerCase().includes(text)
 )
 
@@ -179,7 +177,7 @@ displayProducts(filtered)
 
 function addToCart(id){
 
-let product=products.find(p=>p.id===id)
+let product = products.find(p=>p.id===id)
 
 cart.push(product)
 
@@ -189,17 +187,17 @@ renderCart()
 
 function renderCart(){
 
-let container=document.getElementById("cart")
+let container = document.getElementById("cart")
 
-container.innerHTML=""
+container.innerHTML = ""
 
-let total=0
+let total = 0
 
 cart.forEach(p=>{
 
-total+=p.price
+total += Number(p.price)
 
-container.innerHTML+=`
+container.innerHTML += `
 
 <div class="cart-item">
 
@@ -211,7 +209,7 @@ ${p.name} - ${p.price}
 
 })
 
-document.getElementById("total").innerText="الإجمالي: "+total
+document.getElementById("total").innerText = "الإجمالي: " + total
 
 }
 
@@ -219,7 +217,7 @@ function completeSale(){
 
 alert("تم إتمام البيع")
 
-cart=[]
+cart = []
 
 renderCart()
 
@@ -230,3 +228,4 @@ renderCart()
 </body>
 
 </html>
+
