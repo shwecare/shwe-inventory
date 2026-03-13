@@ -116,6 +116,7 @@ border-radius:6px;
 
 </div>
 
+
 <script>
 
 const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
@@ -132,6 +133,11 @@ async function loadProducts(){
 const {data,error}=await client
 .from("products")
 .select("*")
+
+if(error){
+console.log(error)
+return
+}
 
 products=data
 
@@ -231,7 +237,6 @@ async function finishSale(){
 if(cart.length===0){
 
 alert("السلة فارغة")
-
 return
 
 }
@@ -247,18 +252,25 @@ let payment=document.getElementById("payment").value
 let invoice="INV-"+Date.now()
 
 
-const {data:sale,error}=await client
+const { data, error } = await client
 .from("sales")
 .insert([{
-
 invoice_number:invoice,
 total:total,
 payment_method:payment
-
 }])
 .select()
+.single()
 
-let sale_id=sale[0].id
+if(error){
+
+console.log(error)
+alert("فشل حفظ الفاتورة")
+return
+
+}
+
+let sale_id=data.id
 
 
 for(let item of cart){
