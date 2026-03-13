@@ -124,9 +124,14 @@ loadProducts()
 
 async function loadProducts(){
 
-const { data } = await supabase
+const { data, error } = await supabase
 .from("products")
 .select("*")
+
+if(error){
+console.log(error)
+return
+}
 
 products=data
 
@@ -144,13 +149,13 @@ list.forEach(p=>{
 
 container.innerHTML+=`
 
-<div class="product" onclick='addToCart(${JSON.stringify(p)})'>
+<div class="product" onclick="addToCart(${p.id})">
 
 <b>${p.name}</b>
 
 <br>
 
-${p.price}
+السعر: ${p.price}
 
 </div>
 
@@ -164,13 +169,17 @@ document.getElementById("search").addEventListener("input",function(){
 
 let text=this.value.toLowerCase()
 
-let filtered=products.filter(p=>p.name.toLowerCase().includes(text))
+let filtered=products.filter(p=>
+p.name && p.name.toLowerCase().includes(text)
+)
 
 displayProducts(filtered)
 
 })
 
-function addToCart(product){
+function addToCart(id){
+
+let product=products.find(p=>p.id===id)
 
 cart.push(product)
 
@@ -208,7 +217,7 @@ document.getElementById("total").innerText="الإجمالي: "+total
 
 function completeSale(){
 
-alert("تم البيع")
+alert("تم إتمام البيع")
 
 cart=[]
 
@@ -221,4 +230,3 @@ renderCart()
 </body>
 
 </html>
-
