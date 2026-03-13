@@ -126,7 +126,7 @@ const {data}=await db
 .from("products")
 .select("*");
 
-products=data;
+products=data || [];
 
 renderProducts(products);
 
@@ -157,9 +157,7 @@ function addToCart(product){
 let item=cart.find(i=>i.id===product.id);
 
 if(item){
-
 item.quantity++;
-
 }else{
 
 cart.push({
@@ -220,10 +218,9 @@ payment_method:payment
 .select();
 
 if(error){
-
 alert("فشل حفظ الفاتورة");
+console.log(error);
 return;
-
 }
 
 const saleId=data[0].id;
@@ -231,14 +228,12 @@ const saleId=data[0].id;
 let items=[];
 
 cart.forEach(item=>{
-
 items.push({
 sale_id:saleId,
 product_name:item.name,
 price:item.price,
 quantity:item.quantity
 });
-
 });
 
 await db
@@ -259,7 +254,6 @@ function printInvoice(invoiceNumber){
 let rows="";
 
 cart.forEach(item=>{
-
 rows+=`
 <tr>
 <td>${item.name}</td>
@@ -268,10 +262,14 @@ rows+=`
 <td>${item.price*item.quantity}</td>
 </tr>
 `;
-
 });
 
-let win=window.open("","","width=400");
+let win=window.open();
+
+if(!win){
+alert("المتصفح منع نافذة الطباعة");
+return;
+}
 
 win.document.write(`
 
@@ -307,7 +305,6 @@ padding:6px;
 <h2>فاتورة بيع</h2>
 
 <p>رقم الفاتورة: ${invoiceNumber}</p>
-
 <p>${new Date().toLocaleString()}</p>
 
 <table>
@@ -331,7 +328,11 @@ ${rows}
 
 `);
 
+win.document.close();
+
+setTimeout(()=>{
 win.print();
+},500);
 
 }
 
