@@ -35,9 +35,6 @@ border:none;
 border-radius:6px;
 cursor:pointer;
 margin:5px;
-}
-
-.add-btn{
 background:#22c55e;
 color:white;
 }
@@ -66,7 +63,7 @@ border-radius:8px;
 <input id="price" placeholder="السعر">
 <input id="category" placeholder="التصنيف">
 
-<button class="add-btn" onclick="addProduct()">إضافة المنتج</button>
+<button onclick="addProduct()">إضافة المنتج</button>
 
 <h3>المنتجات</h3>
 
@@ -82,18 +79,17 @@ const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
 loadProducts()
 
 async function loadProducts(){
 
-const { data } = await supabase
+const { data } = await supabaseClient
 .from("products")
 .select("*")
 
 let container=document.getElementById("products")
-
 container.innerHTML=""
 
 data.forEach(p=>{
@@ -122,12 +118,7 @@ let barcode=document.getElementById("barcode").value
 let price=document.getElementById("price").value
 let category=document.getElementById("category").value
 
-if(name=="" || barcode=="" || price==""){
-alert("يرجى تعبئة جميع الحقول")
-return
-}
-
-await supabase
+await supabaseClient
 .from("products")
 .insert([
 {
@@ -137,11 +128,6 @@ price:Number(price),
 category:category
 }
 ])
-
-document.getElementById("name").value=""
-document.getElementById("barcode").value=""
-document.getElementById("price").value=""
-document.getElementById("category").value=""
 
 loadProducts()
 
