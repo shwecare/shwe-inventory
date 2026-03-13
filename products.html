@@ -22,22 +22,24 @@ margin:auto;
 }
 
 input{
-padding:12px;
+padding:10px;
 border:none;
 border-radius:6px;
 margin:5px;
-width:180px;
+width:150px;
 }
 
 button{
-padding:10px 16px;
+padding:8px 14px;
 border:none;
 border-radius:6px;
 cursor:pointer;
 margin:5px;
-background:#22c55e;
-color:white;
 }
+
+.add{background:#22c55e;color:white;}
+.edit{background:#3b82f6;color:white;}
+.delete{background:#ef4444;color:white;}
 
 .product{
 background:#1e293b;
@@ -63,7 +65,7 @@ border-radius:8px;
 <input id="price" placeholder="السعر">
 <input id="category" placeholder="التصنيف">
 
-<button onclick="addProduct()">إضافة المنتج</button>
+<button class="add" onclick="addProduct()">إضافة المنتج</button>
 
 <h3>المنتجات</h3>
 
@@ -79,13 +81,13 @@ const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
 loadProducts()
 
 async function loadProducts(){
 
-const { data } = await supabaseClient
+const { data } = await supabase
 .from("products")
 .select("*")
 
@@ -98,10 +100,16 @@ container.innerHTML+=`
 
 <div class="product">
 
-<b>${p.name}</b><br>
-Barcode: ${p.barcode}<br>
-Price: ${p.price}<br>
-Category: ${p.category}
+<input id="name-${p.id}" value="${p.name}">
+<input id="barcode-${p.id}" value="${p.barcode}">
+<input id="price-${p.id}" value="${p.price}">
+<input id="category-${p.id}" value="${p.category}">
+
+<br>
+
+<button class="edit" onclick="updateProduct('${p.id}')">تعديل</button>
+
+<button class="delete" onclick="deleteProduct('${p.id}')">حذف</button>
 
 </div>
 
@@ -118,16 +126,41 @@ let barcode=document.getElementById("barcode").value
 let price=document.getElementById("price").value
 let category=document.getElementById("category").value
 
-await supabaseClient
+await supabase
 .from("products")
-.insert([
-{
+.insert([{name,barcode,price:Number(price),category}])
+
+loadProducts()
+
+}
+
+async function updateProduct(id){
+
+let name=document.getElementById("name-"+id).value
+let barcode=document.getElementById("barcode-"+id).value
+let price=document.getElementById("price-"+id).value
+let category=document.getElementById("category-"+id).value
+
+await supabase
+.from("products")
+.update({
 name:name,
 barcode:barcode,
 price:Number(price),
 category:category
+})
+.eq("id",id)
+
+loadProducts()
+
 }
-])
+
+async function deleteProduct(id){
+
+await supabase
+.from("products")
+.delete()
+.eq("id",id)
 
 loadProducts()
 
