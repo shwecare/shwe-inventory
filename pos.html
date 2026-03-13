@@ -63,6 +63,15 @@ background:#0f172a;
 padding:10px;
 margin-bottom:10px;
 border-radius:6px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.remove{
+color:red;
+cursor:pointer;
+font-weight:bold;
 }
 
 button{
@@ -93,7 +102,7 @@ border-radius:6px;
 
 <h2>المنتجات</h2>
 
-<input class="search" id="search" placeholder="بحث عن منتج">
+<input class="search" id="search" placeholder="بحث عن منتج" onkeyup="searchProduct()">
 
 <div class="grid" id="products"></div>
 
@@ -179,9 +188,21 @@ document.getElementById("products").innerHTML=html;
 
 }
 
+function searchProduct(){
+
+let text=document.getElementById("search").value.toLowerCase();
+
+let filtered=products.filter(p=>
+p.name.toLowerCase().includes(text)
+);
+
+renderProducts(filtered);
+
+}
+
 function addToCart(id){
 
-let product = products.find(p=>p.id===id);
+let product=products.find(p=>p.id===id);
 
 if(product.stock<=0){
 alert("المنتج غير متوفر");
@@ -205,6 +226,14 @@ renderCart();
 
 }
 
+function removeItem(id){
+
+cart=cart.filter(i=>i.id!==id);
+
+renderCart();
+
+}
+
 function renderCart(){
 
 let html="";
@@ -213,17 +242,20 @@ total=0;
 cart.forEach(item=>{
 
 let sum=item.price*item.quantity;
+
 total+=sum;
 
 html+=`
 <div class="item">
-${item.name} × ${item.quantity}
+<span>${item.name} × ${item.quantity}</span>
+<span class="remove" onclick="removeItem('${item.id}')">✖</span>
 </div>
 `;
 
 });
 
 document.getElementById("cart").innerHTML=html;
+
 document.getElementById("total").innerText=total;
 
 }
@@ -236,6 +268,7 @@ return;
 }
 
 let invoice="INV-"+Date.now();
+
 let payment=document.getElementById("payment").value;
 
 const {data:sale}=await db
@@ -388,4 +421,3 @@ win.print();
 </body>
 </html>
 ```
-
