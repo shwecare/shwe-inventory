@@ -1,49 +1,51 @@
+```html
 <!DOCTYPE html>
-
 <html lang="ar">
 
 <head>
+
 <meta charset="UTF-8">
 <title>إدارة المنتجات</title>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
 
 body{
 font-family:Arial;
-direction:rtl;
 background:#0f172a;
 color:white;
-padding:40px;
+padding:30px;
+direction:rtl;
 }
 
-.container{
-max-width:900px;
-margin:auto;
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+td,th{
+border:1px solid #334155;
+padding:10px;
+text-align:center;
 }
 
 input{
-padding:10px;
-border:none;
-border-radius:6px;
-margin:5px;
-width:150px;
+padding:8px;
+width:100%;
 }
 
 button{
-padding:8px 14px;
+padding:10px 15px;
 border:none;
-border-radius:6px;
-cursor:pointer;
-margin:5px;
 background:#22c55e;
 color:white;
+cursor:pointer;
 }
 
-.product{
-background:#1e293b;
-padding:15px;
-margin:10px 0;
-border-radius:8px;
+.delete{
+background:#ef4444;
 }
 
 </style>
@@ -52,110 +54,136 @@ border-radius:8px;
 
 <body>
 
-<div class="container">
-
-<h1>إدارة المنتجات</h1>
+<h2>إدارة المنتجات</h2>
 
 <h3>إضافة منتج</h3>
 
 <input id="name" placeholder="اسم المنتج">
-<input id="barcode" placeholder="الباركود">
 <input id="price" placeholder="السعر">
-<input id="category" placeholder="التصنيف">
+<input id="stock" placeholder="المخزون">
+<input id="barcode" placeholder="الباركود">
 
-<button onclick="addProduct()">إضافة المنتج</button>
+<button onclick="addProduct()">إضافة</button>
 
-<h3>المنتجات</h3>
+<h3>قائمة المنتجات</h3>
 
-<div id="products"></div>
+<table>
 
-</div>
+<thead>
+<tr>
+<th>الاسم</th>
+<th>السعر</th>
+<th>المخزون</th>
+<th>الباركود</th>
+<th>حفظ</th>
+<th>حذف</th>
+</tr>
+</thead>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<tbody id="products"></tbody>
+
+</table>
 
 <script>
 
-const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
+const { createClient } = supabase;
 
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+const db = createClient(
+"https://zspikbjjwdnsnzxlqueq.supabase.co",
+"sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
+);
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
-
-loadProducts()
+loadProducts();
 
 async function loadProducts(){
 
-const { data } = await supabaseClient
+const {data}=await db
 .from("products")
-.select("*")
+.select("*");
 
-let container=document.getElementById("products")
-
-container.innerHTML=""
+let html="";
 
 data.forEach(p=>{
 
-container.innerHTML+=`
+html+=`
+<tr>
 
-<div class="product">
+<td>
+<input value="${p.name}" id="name_${p.id}">
+</td>
 
-<input id="name-${p.id}" value="${p.name}">
-<input id="barcode-${p.id}" value="${p.barcode}">
-<input id="price-${p.id}" value="${p.price}">
-<input id="category-${p.id}" value="${p.category}">
+<td>
+<input value="${p.price}" id="price_${p.id}">
+</td>
 
-<br>
+<td>
+<input value="${p.stock}" id="stock_${p.id}">
+</td>
 
-<button onclick="updateProduct('${p.id}')">تعديل</button>
-<button onclick="deleteProduct('${p.id}')">حذف</button>
+<td>
+<input value="${p.barcode ?? ""}" id="barcode_${p.id}">
+</td>
 
-</div>
+<td>
+<button onclick="saveProduct('${p.id}')">حفظ</button>
+</td>
 
-`
+<td>
+<button class="delete" onclick="deleteProduct('${p.id}')">حذف</button>
+</td>
 
-})
+</tr>
+`;
+
+});
+
+document.getElementById("products").innerHTML=html;
 
 }
 
 async function addProduct(){
 
-let name=document.getElementById("name").value
-let barcode=document.getElementById("barcode").value
-let price=document.getElementById("price").value
-let category=document.getElementById("category").value
-
-await supabaseClient
+await db
 .from("products")
-.insert([{name,barcode,price:Number(price),category}])
+.insert({
 
-loadProducts()
+name:document.getElementById("name").value,
+price:document.getElementById("price").value,
+stock:document.getElementById("stock").value,
+barcode:document.getElementById("barcode").value
+
+});
+
+loadProducts();
 
 }
 
-async function updateProduct(id){
+async function saveProduct(id){
 
-let name=document.getElementById("name-"+id).value
-let barcode=document.getElementById("barcode-"+id).value
-let price=document.getElementById("price-"+id).value
-let category=document.getElementById("category-"+id).value
-
-await supabaseClient
+await db
 .from("products")
-.update({name,barcode,price:Number(price),category})
-.eq("id",id)
+.update({
 
-loadProducts()
+name:document.getElementById("name_"+id).value,
+price:document.getElementById("price_"+id).value,
+stock:document.getElementById("stock_"+id).value,
+barcode:document.getElementById("barcode_"+id).value
+
+})
+.eq("id",id);
+
+alert("تم التحديث");
 
 }
 
 async function deleteProduct(id){
 
-await supabaseClient
+await db
 .from("products")
 .delete()
-.eq("id",id)
+.eq("id",id);
 
-loadProducts()
+loadProducts();
 
 }
 
@@ -163,3 +191,5 @@ loadProducts()
 
 </body>
 </html>
+```
+
