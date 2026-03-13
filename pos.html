@@ -1,1 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="ar">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>POS - نظام البيع</title>
+
+<style>
+
+body{
+font-family:Arial;
+direction:rtl;
+background:#0f172a;
+color:white;
+margin:0;
+}
+
+.container{
+display:grid;
+grid-template-columns:2fr 1fr;
+height:100vh;
+}
+
+.products{
+padding:20px;
+overflow:auto;
+}
+
+.cart{
+background:#1e293b;
+padding:20px;
+}
+
+input{
+padding:10px;
+width:100%;
+border:none;
+border-radius:6px;
+margin-bottom:20px;
+}
+
+.product{
+background:#1e293b;
+padding:15px;
+margin:10px;
+border-radius:8px;
+cursor:pointer;
+display:inline-block;
+width:150px;
+text-align:center;
+}
+
+.product:hover{
+background:#334155;
+}
+
+.cart-item{
+margin:10px 0;
+padding:10px;
+background:#334155;
+border-radius:6px;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:6px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+width:100%;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="products">
+
+<h2>المنتجات</h2>
+
+<input id="search" placeholder="بحث عن منتج">
+
+<div id="products"></div>
+
+</div>
+
+<div class="cart">
+
+<h2>الفاتورة</h2>
+
+<div id="cart"></div>
+
+<h3 id="total">الإجمالي: 0</h3>
+
+<button onclick="completeSale()">إتمام البيع</button>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
+
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+
+const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+
+let products=[]
+let cart=[]
+
+loadProducts()
+
+async function loadProducts(){
+
+const { data } = await supabase
+.from("products")
+.select("*")
+
+products=data
+
+displayProducts(products)
+
+}
+
+function displayProducts(list){
+
+let container=document.getElementById("products")
+
+container.innerHTML=""
+
+list.forEach(p=>{
+
+container.innerHTML+=`
+
+<div class="product" onclick='addToCart(${JSON.stringify(p)})'>
+
+<b>${p.name}</b>
+
+<br>
+
+${p.price}
+
+</div>
+
+`
+
+})
+
+}
+
+document.getElementById("search").addEventListener("input",function(){
+
+let text=this.value.toLowerCase()
+
+let filtered=products.filter(p=>p.name.toLowerCase().includes(text))
+
+displayProducts(filtered)
+
+})
+
+function addToCart(product){
+
+cart.push(product)
+
+renderCart()
+
+}
+
+function renderCart(){
+
+let container=document.getElementById("cart")
+
+container.innerHTML=""
+
+let total=0
+
+cart.forEach(p=>{
+
+total+=p.price
+
+container.innerHTML+=`
+
+<div class="cart-item">
+
+${p.name} - ${p.price}
+
+</div>
+
+`
+
+})
+
+document.getElementById("total").innerText="الإجمالي: "+total
+
+}
+
+function completeSale(){
+
+alert("تم البيع")
+
+cart=[]
+
+renderCart()
+
+}
+
+</script>
+
+</body>
+
+</html>
 
