@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="ar">
-
 <head>
 <meta charset="UTF-8">
-<title>POS - نظام البيع</title>
+<title>POS نظام البيع</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
 
@@ -17,81 +17,55 @@ margin:0;
 }
 
 .container{
-display:grid;
-grid-template-columns:2fr 1fr;
+display:flex;
 height:100vh;
 }
 
-.products{
-padding:20px;
-overflow:auto;
-}
-
-.cart{
+.left{
+width:30%;
 background:#1e293b;
 padding:20px;
 }
 
-input{
-padding:10px;
-width:100%;
-border:none;
-border-radius:6px;
-margin-bottom:20px;
+.right{
+flex:1;
+padding:20px;
 }
 
 .product{
 background:#1e293b;
-padding:15px;
+padding:20px;
 margin:10px;
-border-radius:8px;
+border-radius:10px;
 cursor:pointer;
 display:inline-block;
-width:150px;
-text-align:center;
-}
-
-.product:hover{
-background:#334155;
-}
-
-.cart-item{
-margin:10px 0;
-padding:10px;
-background:#334155;
-border-radius:6px;
 }
 
 button{
-padding:10px;
-border:none;
-border-radius:6px;
+padding:10px 20px;
 background:#22c55e;
+border:none;
 color:white;
+border-radius:6px;
 cursor:pointer;
+}
+
+input{
 width:100%;
-margin-top:10px;
+padding:10px;
+margin-bottom:10px;
+border-radius:6px;
+border:none;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
 
-<div class="products">
-
-<h2>المنتجات</h2>
-
-<input id="search" placeholder="بحث عن منتج">
-
-<div id="products"></div>
-
-</div>
-
-<div class="cart">
+<div class="left">
 
 <h2>الفاتورة</h2>
 
@@ -99,87 +73,81 @@ margin-top:10px;
 
 <h3 id="total">الإجمالي: 0</h3>
 
-<button onclick="completeSale()">إتمام البيع</button>
+<select id="payment">
+
+<option value="cash">نقدي</option>
+<option value="card">بطاقة</option>
+
+</select>
+
+<br><br>
+
+<button onclick="finishSale()">إتمام البيع</button>
+
+</div>
+
+<div class="right">
+
+<h2>المنتجات</h2>
+
+<input id="search" placeholder="بحث">
+
+<div id="products"></div>
 
 </div>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <script>
 
-const SUPABASE_URL="https://zspikbjjwdnsnzxlqueq.supabase.co"
+const SUPABASE_URL="YOUR_URL"
+const SUPABASE_KEY="YOUR_KEY"
 
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+const supabase = supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
-
-let products=[]
 let cart=[]
-
-loadProducts()
 
 async function loadProducts(){
 
-const { data, error } = await supabaseClient
+const {data}=await supabase
 .from("products")
 .select("*")
 
-if(error){
-console.log(error)
-return
-}
+let html=""
 
-products=data
+data.forEach(p=>{
 
-displayProducts(products)
-
-}
-
-function displayProducts(list){
-
-let container=document.getElementById("products")
-
-container.innerHTML=""
-
-list.forEach(p=>{
-
-container.innerHTML+=`
-
-<div class="product" onclick="addToCart('${p.id}')">
-
-<b>${p.name}</b>
-
+html+=`
+<div class="product" onclick="addToCart('${p.name}',${p.price})">
+${p.name}
 <br>
-
 ${p.price}
-
 </div>
-
 `
 
 })
 
+document.getElementById("products").innerHTML=html
+
 }
 
-document.getElementById("search").addEventListener("input",function(){
+function addToCart(name,price){
 
-let text=this.value.toLowerCase()
+let item=cart.find(i=>i.name==name)
 
-let filtered=products.filter(p=>
-p.name && p.name.toLowerCase().includes(text)
-)
+if(item){
 
-displayProducts(filtered)
+item.qty++
 
+}else{
+
+cart.push({
+name:name,
+price:price,
+qty:1
 })
 
-function addToCart(id){
-
-let product=products.find(p=>p.id==id)
-
-cart.push(product)
+}
 
 renderCart()
 
@@ -187,49 +155,79 @@ renderCart()
 
 function renderCart(){
 
-let container=document.getElementById("cart")
-
-container.innerHTML=""
-
+let html=""
 let total=0
 
-cart.forEach(p=>{
+cart.forEach(i=>{
 
-total+=Number(p.price)
+total+=i.price*i.qty
 
-container.innerHTML+=`
-
-<div class="cart-item">
-
-${p.name} - ${p.price}
-
+html+=`
+<div>
+${i.name} - ${i.qty}
 </div>
-
 `
 
 })
 
+document.getElementById("cart").innerHTML=html
 document.getElementById("total").innerText="الإجمالي: "+total
 
 }
 
-function completeSale(){
+async function finishSale(){
 
-alert("تم البيع")
+if(cart.length==0){
+
+alert("السلة فارغة")
+return
+
+}
+
+let total=0
+
+cart.forEach(i=>{
+total+=i.price*i.qty
+})
+
+const payment=document.getElementById("payment").value
+
+const invoice="INV-"+Date.now()
+
+const {data:sale}=await supabase
+.from("sales")
+.insert([{
+invoice_number:invoice,
+total:total,
+payment_method:payment
+}])
+.select()
+
+const sale_id=sale[0].id
+
+for(let item of cart){
+
+await supabase
+.from("sale_items")
+.insert([{
+sale_id:sale_id,
+product_name:item.name,
+price:item.price,
+quantity:item.qty
+}])
+
+}
+
+alert("تم البيع\nرقم الفاتورة: "+invoice)
 
 cart=[]
-
 renderCart()
 
 }
 
+loadProducts()
+
 </script>
 
 </body>
-
 </html>
-
-</body>
-
-</html>
-
