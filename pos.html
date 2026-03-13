@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+
 <meta charset="UTF-8">
 <title>POS نظام البيع</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
@@ -39,26 +40,42 @@ margin:10px;
 border-radius:10px;
 cursor:pointer;
 display:inline-block;
+width:150px;
+text-align:center;
+}
+
+.product:hover{
+background:#334155;
 }
 
 button{
-padding:10px 20px;
+padding:12px 20px;
 background:#22c55e;
 border:none;
 color:white;
 border-radius:6px;
 cursor:pointer;
+font-size:16px;
 }
 
 input{
 width:100%;
 padding:10px;
-margin-bottom:10px;
+margin-bottom:20px;
 border-radius:6px;
 border:none;
+font-size:16px;
+}
+
+.cart-item{
+background:#0f172a;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -86,11 +103,12 @@ border:none;
 
 </div>
 
+
 <div class="right">
 
 <h2>المنتجات</h2>
 
-<input id="search" placeholder="بحث">
+<input id="search" placeholder="بحث عن منتج">
 
 <div id="products"></div>
 
@@ -100,28 +118,41 @@ border:none;
 
 <script>
 
-const SUPABASE_URL="YOUR_URL"
-const SUPABASE_KEY="YOUR_KEY"
+const SUPABASE_URL = "https://zspikbjjwdnsnzxlqueq.supabase.co"
+const SUPABASE_KEY = "sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
 
-const supabase = supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+const client = supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
+let products=[]
 let cart=[]
+
 
 async function loadProducts(){
 
-const {data}=await supabase
+const {data,error}=await client
 .from("products")
 .select("*")
 
+products=data
+
+renderProducts(data)
+
+}
+
+
+function renderProducts(list){
+
 let html=""
 
-data.forEach(p=>{
+list.forEach(p=>{
 
 html+=`
 <div class="product" onclick="addToCart('${p.name}',${p.price})">
+
 ${p.name}
 <br>
 ${p.price}
+
 </div>
 `
 
@@ -131,9 +162,21 @@ document.getElementById("products").innerHTML=html
 
 }
 
+
+document.getElementById("search").addEventListener("input",function(){
+
+let value=this.value
+
+let filtered=products.filter(p=>p.name.includes(value))
+
+renderProducts(filtered)
+
+})
+
+
 function addToCart(name,price){
 
-let item=cart.find(i=>i.name==name)
+let item=cart.find(i=>i.name===name)
 
 if(item){
 
@@ -153,6 +196,7 @@ renderCart()
 
 }
 
+
 function renderCart(){
 
 let html=""
@@ -163,8 +207,14 @@ cart.forEach(i=>{
 total+=i.price*i.qty
 
 html+=`
-<div>
-${i.name} - ${i.qty}
+<div class="cart-item">
+
+${i.name}
+
+<br>
+
+${i.qty} × ${i.price}
+
 </div>
 `
 
@@ -175,11 +225,13 @@ document.getElementById("total").innerText="الإجمالي: "+total
 
 }
 
+
 async function finishSale(){
 
-if(cart.length==0){
+if(cart.length===0){
 
 alert("السلة فارغة")
+
 return
 
 }
@@ -190,33 +242,40 @@ cart.forEach(i=>{
 total+=i.price*i.qty
 })
 
-const payment=document.getElementById("payment").value
+let payment=document.getElementById("payment").value
 
-const invoice="INV-"+Date.now()
+let invoice="INV-"+Date.now()
 
-const {data:sale}=await supabase
+
+const {data:sale,error}=await client
 .from("sales")
 .insert([{
+
 invoice_number:invoice,
 total:total,
 payment_method:payment
+
 }])
 .select()
 
-const sale_id=sale[0].id
+let sale_id=sale[0].id
+
 
 for(let item of cart){
 
-await supabase
+await client
 .from("sale_items")
 .insert([{
+
 sale_id:sale_id,
 product_name:item.name,
 price:item.price,
 quantity:item.qty
+
 }])
 
 }
+
 
 alert("تم البيع\nرقم الفاتورة: "+invoice)
 
@@ -224,6 +283,7 @@ cart=[]
 renderCart()
 
 }
+
 
 loadProducts()
 
