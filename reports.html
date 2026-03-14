@@ -10,7 +10,15 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
-```css
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:30px;
+direction:rtl;
+}
+
 .nav{
 background:#020617;
 padding:10px;
@@ -22,35 +30,10 @@ margin-bottom:20px;
 .nav a{
 color:white;
 text-decoration:none;
-font-size:18px;
 background:#1e293b;
 padding:8px 16px;
 border-radius:6px;
 }
-
-.nav a:hover{
-background:#334155;
-}
-```
-
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-padding:30px;
-direction:rtl;
-}
-```html
-<div class="nav">
-
-<a href="pos.html">البيع</a>
-
-<a href="products.html">المنتجات</a>
-
-<a href="reports.html">التقارير</a>
-
-</div>
-```
 
 .cards{
 display:flex;
@@ -70,7 +53,6 @@ font-size:20px;
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:20px;
 }
 
 td,th{
@@ -84,6 +66,12 @@ text-align:center;
 </head>
 
 <body>
+
+<div class="nav">
+<a href="pos.html">البيع</a>
+<a href="products.html">المنتجات</a>
+<a href="reports.html">التقارير</a>
+</div>
 
 <h2>تقارير المبيعات</h2>
 
@@ -115,8 +103,6 @@ text-align:center;
 
 </div>
 
-<h3>آخر الفواتير</h3>
-
 <table>
 
 <thead>
@@ -145,10 +131,7 @@ loadReport();
 
 async function loadReport(){
 
-const {data}=await db
-.from("sales")
-.select("*")
-.order("created_at",{ascending:false});
+const {data}=await db.from("sales").select("*").order("created_at",{ascending:false});
 
 let today=0;
 let week=0;
@@ -179,12 +162,6 @@ document.getElementById("week").innerText=week;
 document.getElementById("total").innerText=total;
 document.getElementById("count").innerText=data.length;
 
-renderTable(data);
-
-}
-
-function renderTable(data){
-
 let html="";
 
 data.slice(0,20).forEach(s=>{
@@ -209,3 +186,4 @@ document.getElementById("sales").innerHTML=html;
 </body>
 </html>
 ```
+
