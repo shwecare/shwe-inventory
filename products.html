@@ -10,7 +10,15 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <style>
-```css
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:30px;
+direction:rtl;
+}
+
 .nav{
 background:#020617;
 padding:10px;
@@ -22,35 +30,10 @@ margin-bottom:20px;
 .nav a{
 color:white;
 text-decoration:none;
-font-size:18px;
 background:#1e293b;
 padding:8px 16px;
 border-radius:6px;
 }
-
-.nav a:hover{
-background:#334155;
-}
-```
-
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-padding:30px;
-direction:rtl;
-}
-```html
-<div class="nav">
-
-<a href="pos.html">البيع</a>
-
-<a href="products.html">المنتجات</a>
-
-<a href="reports.html">التقارير</a>
-
-</div>
-```
 
 table{
 width:100%;
@@ -87,9 +70,13 @@ background:#ef4444;
 
 <body>
 
-<h2>إدارة المنتجات</h2>
+<div class="nav">
+<a href="pos.html">البيع</a>
+<a href="products.html">المنتجات</a>
+<a href="reports.html">التقارير</a>
+</div>
 
-<h3>إضافة منتج</h3>
+<h2>إدارة المنتجات</h2>
 
 <input id="name" placeholder="اسم المنتج">
 <input id="price" placeholder="السعر">
@@ -97,8 +84,6 @@ background:#ef4444;
 <input id="barcode" placeholder="الباركود">
 
 <button onclick="addProduct()">إضافة</button>
-
-<h3>قائمة المنتجات</h3>
 
 <table>
 
@@ -130,9 +115,7 @@ loadProducts();
 
 async function loadProducts(){
 
-const {data}=await db
-.from("products")
-.select("*");
+const {data}=await db.from("products").select("*");
 
 let html="";
 
@@ -140,31 +123,13 @@ data.forEach(p=>{
 
 html+=`
 <tr>
+<td><input value="${p.name}" id="name_${p.id}"></td>
+<td><input value="${p.price}" id="price_${p.id}"></td>
+<td><input value="${p.stock}" id="stock_${p.id}"></td>
+<td><input value="${p.barcode ?? ""}" id="barcode_${p.id}"></td>
 
-<td>
-<input value="${p.name}" id="name_${p.id}">
-</td>
-
-<td>
-<input value="${p.price}" id="price_${p.id}">
-</td>
-
-<td>
-<input value="${p.stock}" id="stock_${p.id}">
-</td>
-
-<td>
-<input value="${p.barcode ?? ""}" id="barcode_${p.id}">
-</td>
-
-<td>
-<button onclick="saveProduct('${p.id}')">حفظ</button>
-</td>
-
-<td>
-<button class="delete" onclick="deleteProduct('${p.id}')">حذف</button>
-</td>
-
+<td><button onclick="saveProduct('${p.id}')">حفظ</button></td>
+<td><button class="delete" onclick="deleteProduct('${p.id}')">حذف</button></td>
 </tr>
 `;
 
@@ -176,9 +141,7 @@ document.getElementById("products").innerHTML=html;
 
 async function addProduct(){
 
-await db
-.from("products")
-.insert({
+await db.from("products").insert({
 
 name:document.getElementById("name").value,
 price:document.getElementById("price").value,
@@ -193,17 +156,14 @@ loadProducts();
 
 async function saveProduct(id){
 
-await db
-.from("products")
-.update({
+await db.from("products").update({
 
 name:document.getElementById("name_"+id).value,
 price:document.getElementById("price_"+id).value,
 stock:document.getElementById("stock_"+id).value,
 barcode:document.getElementById("barcode_"+id).value
 
-})
-.eq("id",id);
+}).eq("id",id);
 
 alert("تم التحديث");
 
@@ -211,10 +171,7 @@ alert("تم التحديث");
 
 async function deleteProduct(id){
 
-await db
-.from("products")
-.delete()
-.eq("id",id);
+await db.from("products").delete().eq("id",id);
 
 loadProducts();
 
