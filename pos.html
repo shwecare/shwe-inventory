@@ -8,7 +8,9 @@
 
 <title>نظام البيع POS</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 
@@ -20,75 +22,70 @@ margin:0;
 direction:rtl;
 }
 
-.header{
+header{
 background:#020617;
 padding:15px;
-display:flex;
-justify-content:flex-end;
-gap:10px;
+text-align:center;
 }
 
-.header a{
-color:white;
-text-decoration:none;
+nav button{
+margin:5px;
+padding:10px 20px;
 background:#1e293b;
-padding:8px 14px;
+color:white;
+border:none;
 border-radius:6px;
+cursor:pointer;
 }
 
 .container{
 display:flex;
-height:calc(100vh - 60px);
+height:90vh;
 }
 
 .products{
-flex:1;
+flex:2;
 padding:20px;
 }
 
 .invoice{
-width:320px;
+flex:1;
 background:#1e293b;
 padding:20px;
 }
 
 .product-grid{
-display:flex;
-flex-wrap:wrap;
-gap:20px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
 }
 
 .product{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-width:180px;
-text-align:center;
-cursor:pointer;
-}
-
-.product:hover{
 background:#334155;
+padding:20px;
+border-radius:8px;
+cursor:pointer;
+text-align:center;
 }
 
-.green{
+button.sell{
 background:#22c55e;
-color:white;
-padding:12px;
 width:100%;
+padding:12px;
 border:none;
-margin-top:10px;
 border-radius:6px;
+color:white;
+margin-top:10px;
 }
 
-.red{
+button.clear{
 background:#ef4444;
-color:white;
-padding:12px;
 width:100%;
+padding:12px;
 border:none;
-margin-top:10px;
 border-radius:6px;
+color:white;
+margin-top:10px;
 }
 
 .cartItem{
@@ -96,13 +93,13 @@ display:flex;
 justify-content:space-between;
 margin-bottom:10px;
 background:#0f172a;
-padding:8px;
+padding:6px;
 border-radius:6px;
 }
 
 .qtybtn{
 border:none;
-padding:4px 10px;
+padding:3px 8px;
 color:white;
 border-radius:4px;
 }
@@ -116,39 +113,44 @@ border-radius:4px;
 
 <body>
 
-<div class="header">
+<header>
 
-<a href="pos.html">البيع</a>
-<a href="products.html">المنتجات</a>
-<a href="reports.html">التقارير</a>
+<nav>
 
-</div>
+<button onclick="location.href='pos.html'">البيع</button>
+<button onclick="location.href='products.html'">المنتجات</button>
+<button onclick="location.href='reports.html'">التقارير</button>
+
+</nav>
+
+</header>
+
 
 <div class="container">
+
 
 <div class="products">
 
 <h2>المنتجات</h2>
 
-<input
-id="search"
+<input id="search"
 placeholder="بحث عن منتج"
 onkeyup="loadProducts()"
-style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:none"
->
+style="width:100%;padding:10px;margin-bottom:20px">
 
-<div class="product-grid" id="products"></div>
+<div id="products" class="product-grid"></div>
 
 </div>
 
 
+
 <div class="invoice">
 
-<h3>الفاتورة</h3>
+<h2>الفاتورة</h2>
 
 <div id="cart"></div>
 
-<h3 id="total">الإجمالي: 0</h3>
+<h3>الإجمالي: <span id="total">0</span></h3>
 
 <select id="payment">
 
@@ -157,54 +159,50 @@ style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:none"
 
 </select>
 
-<button class="green" onclick="finishSale()">إتمام البيع</button>
+<button class="sell" onclick="completeSale()">إتمام البيع</button>
 
-<button class="red" onclick="clearCart()">تفريغ الفاتورة</button>
+<button class="clear" onclick="clearCart()">تفريغ الفاتورة</button>
+
+</div>
 
 </div>
 
-</div>
+
 
 <script>
 
-const supabaseUrl = "https://zspikbjjwdnsnzxlqueq.supabase.co";
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI";
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const db = supabase.createClient(
-  supabaseUrl,
-  supabaseKey,
-  {
-    db: { schema: "public" }
-  }
-);
-let products=[];
-let cart=[];
+const db=supabase.createClient(supabaseUrl,supabaseKey)
+
+let products=[]
+let cart=[]
+
+
 
 async function loadProducts(){
 
-const search=document.getElementById("search").value;
+const search=document.getElementById("search").value
 
-let query=db.from("products").select("*");
+let query=db.from("products").select("*")
 
-if(search){
+if(search) query=query.ilike("name","%"+search+"%")
 
-query=query.ilike("name","%"+search+"%");
+let {data}=await query
 
-}
+products=data || []
 
-const {data,error}=await query;
-
-if(error){
-
-console.log(error);
-return;
+renderProducts()
 
 }
 
-products=data || [];
 
-let html="";
+
+function renderProducts(){
+
+let html=""
 
 products.forEach(p=>{
 
@@ -212,66 +210,72 @@ html+=`
 
 <div class="product" onclick="addToCart('${p.id}')">
 
-<h3>${p.name}</h3>
+<b>${p.name}</b><br>
 
-<p>السعر: ${p.price}</p>
+السعر: ${p.price}<br>
 
-<p>المخزون: ${p.stock}</p>
+المخزون: ${p.stock}
 
 </div>
 
-`;
+`
 
-});
+})
 
-document.getElementById("products").innerHTML=html;
+document.getElementById("products").innerHTML=html
 
 }
 
+
+
 function addToCart(id){
 
-let product=products.find(p=>p.id==id);
+let product=products.find(p=>p.id==id)
 
-let item=cart.find(i=>i.id==id);
+let item=cart.find(i=>i.id==id)
 
 if(item){
 
-item.quantity++;
+item.quantity++
 
 }else{
 
 cart.push({
-
 id:product.id,
 name:product.name,
 price:product.price,
 quantity:1
+})
 
-});
+}
+
+renderCart()
 
 }
 
-renderCart();
 
-}
 
 function renderCart(){
 
-let html="";
+let html=""
+let total=0
 
-cart.forEach((item,index)=>{
+cart.forEach((i,index)=>{
+
+let sub=i.price*i.quantity
+total+=sub
 
 html+=`
 
 <div class="cartItem">
 
-<div>${item.name}</div>
+${i.name}
 
 <div>
 
 <button class="qtybtn minus" onclick="changeQty(${index},-1)">-</button>
 
-<span style="margin:0 8px">${item.quantity}</span>
+${i.quantity}
 
 <button class="qtybtn plus" onclick="changeQty(${index},1)">+</button>
 
@@ -279,161 +283,243 @@ html+=`
 
 </div>
 
-`;
+`
 
-});
+})
 
-document.getElementById("cart").innerHTML=html;
-
-updateTotal();
+document.getElementById("cart").innerHTML=html
+document.getElementById("total").innerText=total
 
 }
+
+
 
 function changeQty(index,amount){
 
-cart[index].quantity+=amount;
+cart[index].quantity+=amount
 
 if(cart[index].quantity<=0){
 
-cart.splice(index,1);
+cart.splice(index,1)
 
 }
 
-renderCart();
+renderCart()
 
 }
 
-function updateTotal(){
 
-let total=0;
-
-cart.forEach(i=>{
-
-total+=i.price*i.quantity;
-
-});
-
-document.getElementById("total").innerText="الإجمالي: "+total;
-
-}
 
 function clearCart(){
 
-cart=[];
-
-renderCart();
-
-}
-
-async function finishSale(){
-
-if(cart.length==0){
-
-alert("الفاتورة فارغة");
-
-return;
+cart=[]
+renderCart()
 
 }
 
-let total=0;
 
-cart.forEach(i=>{
 
-total+=i.price*i.quantity;
+async function completeSale(){
 
-});
+if(cart.length==0) return
 
-const invoice="INV-"+Date.now();
+let total=cart.reduce((s,i)=>s+i.price*i.quantity,0)
 
-const {data:sale}=await db
-.from("sales")
-.insert({
-invoice_number:invoice,
+let payment=document.getElementById("payment").value
+
+let invoice="INV-"+Date.now()
+
+let saleData={
+invoice:invoice,
 total:total,
-payment_method:document.getElementById("payment").value
-})
-.select()
-.single();
+payment:payment,
+items:cart
+}
 
-for(let item of cart){
+if(navigator.onLine){
+
+await sendSaleToServer(saleData)
+
+}else{
+
+saveOfflineSale(saleData)
+
+}
+
+printInvoice(invoice)
+
+cart=[]
+renderCart()
+loadProducts()
+
+}
+
+
+
+function saveOfflineSale(sale){
+
+let sales=JSON.parse(localStorage.getItem("offline_sales")||"[]")
+
+sales.push(sale)
+
+localStorage.setItem("offline_sales",JSON.stringify(sales))
+
+}
+
+
+
+async function sendSaleToServer(sale){
+
+await db.from("sales").insert({
+invoice_number:sale.invoice,
+total:sale.total,
+payment_method:sale.payment
+})
+
+for(let item of sale.items){
 
 await db.from("sale_items").insert({
-
-sale_id:sale.id,
-product_name:item.name,
-price:item.price,
-quantity:item.quantity
-
-});
-
-let product=products.find(p=>p.id==item.id);
-
-let newStock=product.stock-item.quantity;
-
-await db.from("products")
-.update({stock:newStock})
-.eq("id",item.id);
+invoice_number:sale.invoice,
+product_id:item.id,
+quantity:item.quantity,
+price:item.price
+})
 
 }
 
-printInvoice(invoice);
+}
 
-cart=[];
-renderCart();
 
-loadProducts();
+
+window.addEventListener("online",syncOfflineSales)
+
+
+
+async function syncOfflineSales(){
+
+let sales=JSON.parse(localStorage.getItem("offline_sales")||"[]")
+
+if(sales.length==0) return
+
+for(let sale of sales){
+
+await sendSaleToServer(sale)
 
 }
+
+localStorage.removeItem("offline_sales")
+
+}
+
+
 
 function printInvoice(invoice){
 
-let rows="";
+let rows=""
+let total=0
 
 cart.forEach(i=>{
+
+let sub=i.price*i.quantity
+total+=sub
 
 rows+=`
 
 <tr>
 <td>${i.name}</td>
 <td>${i.quantity}</td>
-<td>${i.price}</td>
-<td>${i.price*i.quantity}</td>
+<td>${sub}</td>
 </tr>
 
-`;
+`
 
-});
+})
 
 let html=`
 
-<h2>فاتورة بيع</h2>
+<html>
 
-<p>رقم الفاتورة: ${invoice}</p>
+<head>
 
-<table border="1" width="100%" cellpadding="5">
+<style>
+
+body{
+font-family:monospace;
+width:80mm;
+text-align:center;
+}
+
+table{
+width:100%;
+font-size:12px;
+}
+
+td,th{
+padding:4px;
+border-bottom:1px dashed black;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h3>SHWE CARE</h3>
+
+فاتورة بيع
+
+<br>
+
+${invoice}
+
+<hr>
+
+<table>
 
 <tr>
-<th>المنتج</th>
-<th>الكمية</th>
-<th>السعر</th>
-<th>الإجمالي</th>
+<th>منتج</th>
+<th>ك</th>
+<th>ج</th>
 </tr>
 
 ${rows}
 
 </table>
 
-`;
+<hr>
 
-let w=window.open("");
+الإجمالي
 
-w.document.write(html);
+${total}
 
-w.print();
+<br><br>
+
+شكراً لزيارتكم
+
+</body>
+
+</html>
+
+`
+
+let w=window.open("")
+w.document.write(html)
+w.print()
 
 }
 
-loadProducts();
+
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register("sw.js")
+
+}
+
+
+
+loadProducts()
 
 </script>
 
