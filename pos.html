@@ -1,7 +1,6 @@
 ```html
 <!DOCTYPE html>
 <html lang="ar">
-
 <head>
 
 <meta charset="UTF-8">
@@ -141,10 +140,8 @@ border-radius:6px;
 <h3 id="total">الإجمالي: 0</h3>
 
 <select id="payment">
-
 <option value="cash">نقدي</option>
 <option value="card">بطاقة</option>
-
 </select>
 
 <button class="green" onclick="finishSale()">إتمام البيع</button>
@@ -206,9 +203,7 @@ html+=`
 <div class="product" onclick="addToCart('${p.id}')">
 
 <h3>${p.name}</h3>
-
 <p>السعر: ${p.price}</p>
-
 <p>المخزون: ${p.stock}</p>
 
 </div>
@@ -253,9 +248,7 @@ html+=`
 
 <div class="cartItem">
 
-<div>
-${item.name}
-</div>
+<div>${item.name}</div>
 
 <div>
 
@@ -414,7 +407,5 @@ loadProducts()
 </script>
 
 </body>
-
 </html>
 ```
-
