@@ -161,10 +161,11 @@ style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:none"
 
 <script>
 
-const supabaseUrl="https://zspikbjwdnsnzxlqueq.supabase.co"
-const supabaseKey="YOUR_SUPABASE_KEY"
+const supabaseUrl = "https://zspikbjwdnsnzxlqueq.supabase.co";
 
-const db=supabase.createClient(supabaseUrl,supabaseKey)
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI";
+
+const db = supabase.createClient(supabaseUrl, supabaseKey);
 
 let products=[]
 let cart=[]
@@ -181,11 +182,11 @@ query=query.ilike("name","%"+search+"%")
 
 const {data}=await query
 
-products=data
+products=data || []
 
 let html=""
 
-data.forEach(p=>{
+products.forEach(p=>{
 
 html+=`
 <div class="product" onclick="addToCart(${p.id})">
@@ -329,10 +330,20 @@ price:item.price,
 quantity:item.quantity
 })
 
-await db.rpc("decrease_stock",{
-p_id:item.id,
-p_qty:item.quantity
+await db
+.from("products")
+.update({
+stock:db.rpc ? undefined : undefined
 })
+.eq("id",item.id)
+
+const product=products.find(p=>p.id===item.id)
+
+let newStock=product.stock-item.quantity
+
+await db.from("products")
+.update({stock:newStock})
+.eq("id",item.id)
 
 }
 
@@ -340,6 +351,8 @@ printInvoice(invoice)
 
 cart=[]
 renderCart()
+
+loadProducts()
 
 }
 
