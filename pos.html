@@ -12,89 +12,99 @@
 <style>
 
 body{
-margin:0;
 font-family:Arial;
 background:#0f172a;
 color:white;
-display:flex;
-height:100vh;
+margin:0;
 direction:rtl;
 }
 
-.nav{
-background:#020617;
-padding:10px;
+.header{
 display:flex;
-gap:20px;
-position:fixed;
-top:0;
-width:100%;
+justify-content:space-between;
+padding:15px;
+background:#020617;
 }
 
-.nav a{
+.header a{
 color:white;
 text-decoration:none;
+margin-left:15px;
 background:#1e293b;
-padding:8px 16px;
+padding:8px 14px;
 border-radius:6px;
 }
 
-.products{
-flex:2;
-padding:80px 20px 20px 20px;
+.container{
+display:flex;
+height:calc(100vh - 60px);
 }
 
 .invoice{
-flex:1;
+width:300px;
 background:#1e293b;
-padding:80px 20px 20px 20px;
+padding:20px;
 }
 
-.grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:15px;
+.products{
+flex:1;
+padding:20px;
+}
+
+.product-grid{
+display:flex;
+gap:20px;
+flex-wrap:wrap;
 }
 
 .product{
 background:#1e293b;
-padding:30px;
+padding:20px;
 border-radius:10px;
+width:180px;
 text-align:center;
 cursor:pointer;
 }
 
-.item{
-background:#0f172a;
-padding:10px;
-margin-bottom:10px;
-border-radius:6px;
-display:flex;
-justify-content:space-between;
+.product:hover{
+background:#334155;
 }
 
 button{
-background:#22c55e;
 border:none;
-padding:14px;
-width:100%;
-color:white;
-border-radius:8px;
-font-size:16px;
 cursor:pointer;
-margin-top:10px;
 }
 
-.clear{
+.green{
+background:#22c55e;
+color:white;
+padding:12px;
+width:100%;
+margin-top:10px;
+border-radius:6px;
+}
+
+.red{
+background:#ef4444;
+color:white;
+padding:12px;
+width:100%;
+margin-top:10px;
+border-radius:6px;
+}
+
+.qtybtn{
+padding:4px 10px;
+border-radius:4px;
+color:white;
+}
+
+.minus{
 background:#ef4444;
 }
 
-.search{
-width:100%;
-padding:10px;
-margin-bottom:20px;
-border-radius:6px;
-border:none;
+.plus{
+background:#22c55e;
 }
 
 </style>
@@ -103,103 +113,106 @@ border:none;
 
 <body>
 
-<div class="nav">
+<div class="header">
+
+<div>
 <a href="pos.html">البيع</a>
 <a href="products.html">المنتجات</a>
 <a href="reports.html">التقارير</a>
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="invoice">
+
+<h3>الفاتورة</h3>
+
+<div id="cart"></div>
+
+<h3 id="total">الإجمالي: 0</h3>
+
+<select id="payment">
+
+<option value="cash">نقدي</option>
+<option value="card">بطاقة</option>
+
+</select>
+
+<button class="green" onclick="finishSale()">إتمام البيع</button>
+
+<button class="red" onclick="clearCart()">تفريغ الفاتورة</button>
+
 </div>
 
 <div class="products">
 
 <h2>المنتجات</h2>
 
-<input class="search" id="search" placeholder="بحث عن منتج" onkeyup="searchProduct()">
+<input id="search" placeholder="بحث عن منتج" onkeyup="loadProducts()"
+style="width:100%;padding:10px;margin-bottom:20px;border-radius:6px;border:none">
 
-<div class="grid" id="products"></div>
+<div class="product-grid" id="products"></div>
 
 </div>
-
-<div class="invoice">
-
-<h2>الفاتورة</h2>
-
-<div id="cart"></div>
-
-<h3>الإجمالي: <span id="total">0</span></h3>
-
-<button onclick="finishSale()">إتمام البيع</button>
-
-<button class="clear" onclick="clearCart()">تفريغ الفاتورة</button>
 
 </div>
 
 <script>
 
-const { createClient } = supabase;
+const supabaseUrl="https://zspikbjwdnsnzxlqueq.supabase.co"
+const supabaseKey="YOUR_SUPABASE_KEY"
 
-const db = createClient(
-"https://zspikbjjwdnsnzxlqueq.supabase.co",
-"sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
-);
+const db=supabase.createClient(supabaseUrl,supabaseKey)
 
-let products=[];
-let cart=[];
-let total=0;
-
-loadProducts();
+let products=[]
+let cart=[]
 
 async function loadProducts(){
 
-const {data}=await db
-.from("products")
-.select("*");
+const search=document.getElementById("search").value
 
-products=data;
+let query=db.from("products").select("*")
 
-renderProducts(products);
-
+if(search){
+query=query.ilike("name","%"+search+"%")
 }
 
-function renderProducts(list){
+const {data}=await query
 
-let html="";
+products=data
 
-list.forEach(p=>{
+let html=""
+
+data.forEach(p=>{
 
 html+=`
-<div class="product" onclick="addToCart('${p.id}')">
-${p.name}<br>
-السعر: ${p.price}<br>
-المخزون: ${p.stock}
+<div class="product" onclick="addToCart(${p.id})">
+
+<h3>${p.name}</h3>
+
+<p>السعر: ${p.price}</p>
+
+<p>المخزون: ${p.stock}</p>
+
 </div>
-`;
+`
 
-});
+})
 
-document.getElementById("products").innerHTML=html;
-
-}
-
-function searchProduct(){
-
-let text=document.getElementById("search").value.toLowerCase();
-
-let filtered=products.filter(p=>p.name.toLowerCase().includes(text));
-
-renderProducts(filtered);
+document.getElementById("products").innerHTML=html
 
 }
 
 function addToCart(id){
 
-let product=products.find(p=>p.id===id);
+let product=products.find(p=>p.id===id)
 
-let item=cart.find(i=>i.id===id);
+let item=cart.find(i=>i.id===id)
 
 if(item){
-
-item.quantity++;
-
+item.quantity++
 }else{
 
 cart.push({
@@ -207,69 +220,182 @@ id:product.id,
 name:product.name,
 price:product.price,
 quantity:1
-});
+})
 
 }
 
-renderCart();
+renderCart()
 
 }
 
 function renderCart(){
 
-let html="";
-total=0;
+let html=""
 
-cart.forEach(item=>{
-
-total+=item.price*item.quantity;
+cart.forEach((item,index)=>{
 
 html+=`
-<div class="item">
-${item.name} x ${item.quantity}
+
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;background:#0f172a;padding:8px;border-radius:6px">
+
+<div>
+${item.name}
 </div>
-`;
 
-});
+<div>
 
-document.getElementById("cart").innerHTML=html;
-document.getElementById("total").innerText=total;
+<button class="qtybtn minus" onclick="changeQty(${index},-1)">-</button>
+
+<span style="margin:0 8px">${item.quantity}</span>
+
+<button class="qtybtn plus" onclick="changeQty(${index},1)">+</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+document.getElementById("cart").innerHTML=html
+
+updateTotal()
+
+}
+
+function changeQty(index,amount){
+
+cart[index].quantity+=amount
+
+if(cart[index].quantity<=0){
+cart.splice(index,1)
+}
+
+renderCart()
+
+}
+
+function updateTotal(){
+
+let total=0
+
+cart.forEach(i=>{
+total+=i.price*i.quantity
+})
+
+document.getElementById("total").innerText="الإجمالي: "+total
 
 }
 
 function clearCart(){
 
-cart=[];
-renderCart();
+cart=[]
+renderCart()
 
 }
 
 async function finishSale(){
 
 if(cart.length===0){
-alert("السلة فارغة");
-return;
+alert("الفاتورة فارغة")
+return
 }
 
-let invoice="INV-"+Date.now();
+let total=0
 
-await db.from("sales").insert({
+cart.forEach(i=>{
+total+=i.price*i.quantity
+})
 
+const invoice="INV-"+Date.now()
+
+const {data:sale}=await db
+.from("sales")
+.insert({
 invoice_number:invoice,
 total:total,
-payment_method:"cash"
+payment_method:document.getElementById("payment").value
+})
+.select()
+.single()
 
-});
+for(let item of cart){
 
-cart=[];
-renderCart();
+await db.from("sale_items").insert({
+sale_id:sale.id,
+product_name:item.name,
+price:item.price,
+quantity:item.quantity
+})
 
-alert("تم البيع");
+await db.rpc("decrease_stock",{
+p_id:item.id,
+p_qty:item.quantity
+})
 
 }
+
+printInvoice(invoice)
+
+cart=[]
+renderCart()
+
+}
+
+function printInvoice(invoice){
+
+let rows=""
+
+cart.forEach(i=>{
+
+rows+=`
+<tr>
+<td>${i.name}</td>
+<td>${i.quantity}</td>
+<td>${i.price}</td>
+<td>${i.price*i.quantity}</td>
+</tr>
+`
+
+})
+
+let html=`
+
+<h2>فاتورة بيع</h2>
+
+<p>رقم الفاتورة: ${invoice}</p>
+
+<table border="1" width="100%" cellpadding="5">
+
+<tr>
+
+<th>المنتج</th>
+<th>الكمية</th>
+<th>السعر</th>
+<th>الإجمالي</th>
+
+</tr>
+
+${rows}
+
+</table>
+
+`
+
+let w=window.open("")
+
+w.document.write(html)
+
+w.print()
+
+}
+
+loadProducts()
 
 </script>
 
 </body>
+
 </html>
 ```
