@@ -10,6 +10,8 @@
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
 
 body{
@@ -73,6 +75,7 @@ border:none;
 border-radius:6px;
 color:white;
 cursor:pointer;
+margin-left:10px;
 }
 
 table{
@@ -98,12 +101,15 @@ text-align:center;
 <nav>
 
 <button onclick="location.href='pos.html'">البيع</button>
+
 <button onclick="location.href='products.html'">المنتجات</button>
+
 <button onclick="location.href='reports.html'">التقارير</button>
 
 </nav>
 
 </header>
+
 
 <div class="container">
 
@@ -112,12 +118,20 @@ text-align:center;
 <div class="filter">
 
 من
+
 <input type="date" id="fromDate">
 
 إلى
+
 <input type="date" id="toDate">
 
 <button class="filterBtn" onclick="loadReports()">عرض التقرير</button>
+
+<button class="filterBtn" onclick="exportExcel()" style="background:#2563eb">
+
+تصدير Excel
+
+</button>
 
 </div>
 
@@ -125,27 +139,43 @@ text-align:center;
 <div class="cards">
 
 <div class="card">
+
 المبيعات النقدية
+
 <br>
+
 <span id="cash">0</span>
+
 </div>
 
 <div class="card">
+
 مبيعات الشبكة
+
 <br>
+
 <span id="card">0</span>
+
 </div>
 
 <div class="card">
+
 إجمالي المبيعات
+
 <br>
+
 <span id="total">0</span>
+
 </div>
 
 <div class="card">
+
 عدد الفواتير
+
 <br>
+
 <span id="count">0</span>
+
 </div>
 
 </div>
@@ -153,15 +183,21 @@ text-align:center;
 
 <h3>آخر الفواتير</h3>
 
+
 <table>
 
 <thead>
 
 <tr>
+
 <th>رقم الفاتورة</th>
+
 <th>الإجمالي</th>
+
 <th>طريقة الدفع</th>
+
 <th>التاريخ</th>
+
 </tr>
 
 </thead>
@@ -171,6 +207,8 @@ text-align:center;
 </table>
 
 </div>
+
+
 
 <script>
 
@@ -185,32 +223,53 @@ const db=supabase.createClient(supabaseUrl,supabaseKey)
 async function loadReports(){
 
 let from=document.getElementById("fromDate").value
+
 let to=document.getElementById("toDate").value
 
-let query=db.from("sales").select("*").order("created_at",{ascending:false})
+let query=db
+
+.from("sales")
+
+.select("*")
+
+.order("created_at",{ascending:false})
 
 if(from){
+
 query=query.gte("created_at",from)
+
 }
 
 if(to){
+
 query=query.lte("created_at",to+"T23:59:59")
+
 }
 
 let {data}=await query
 
+
 let cash=0
+
 let card=0
 
 let html=""
 
+
+
 data.forEach(s=>{
 
 if(s.payment_method=="cash"){
+
 cash+=s.total
+
 }else{
+
 card+=s.total
+
 }
+
+
 
 html+=`
 
@@ -230,13 +289,58 @@ html+=`
 
 })
 
+
 document.getElementById("cash").innerText=cash
+
 document.getElementById("card").innerText=card
+
 document.getElementById("total").innerText=cash+card
+
 document.getElementById("count").innerText=data.length
+
 document.getElementById("salesTable").innerHTML=html
 
 }
+
+
+
+function exportExcel(){
+
+let table=document.getElementById("salesTable")
+
+let data=[["رقم الفاتورة","الإجمالي","طريقة الدفع","التاريخ"]]
+
+for(let row of table.rows){
+
+let cols=row.querySelectorAll("td")
+
+data.push([
+
+cols[0].innerText,
+
+cols[1].innerText,
+
+cols[2].innerText,
+
+cols[3].innerText
+
+])
+
+}
+
+
+
+let ws=XLSX.utils.aoa_to_sheet(data)
+
+let wb=XLSX.utils.book_new()
+
+XLSX.utils.book_append_sheet(wb,ws,"Sales")
+
+XLSX.writeFile(wb,"sales_report.xlsx")
+
+}
+
+
 
 loadReports()
 
