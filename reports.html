@@ -16,8 +16,28 @@ body{
 font-family:Arial;
 background:#0f172a;
 color:white;
-padding:30px;
+margin:0;
 direction:rtl;
+}
+
+header{
+background:#020617;
+padding:15px;
+text-align:center;
+}
+
+nav button{
+margin:5px;
+padding:10px 20px;
+background:#1e293b;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.container{
+padding:30px;
 }
 
 .cards{
@@ -33,6 +53,26 @@ border-radius:10px;
 flex:1;
 text-align:center;
 font-size:20px;
+}
+
+.filter{
+margin-bottom:20px;
+}
+
+input{
+padding:10px;
+border-radius:6px;
+border:none;
+margin-left:10px;
+}
+
+button.filterBtn{
+padding:10px 20px;
+background:#22c55e;
+border:none;
+border-radius:6px;
+color:white;
+cursor:pointer;
 }
 
 table{
@@ -53,7 +93,34 @@ text-align:center;
 
 <body>
 
+<header>
+
+<nav>
+
+<button onclick="location.href='pos.html'">البيع</button>
+<button onclick="location.href='products.html'">المنتجات</button>
+<button onclick="location.href='reports.html'">التقارير</button>
+
+</nav>
+
+</header>
+
+<div class="container">
+
 <h2>تقارير المبيعات</h2>
+
+<div class="filter">
+
+من
+<input type="date" id="fromDate">
+
+إلى
+<input type="date" id="toDate">
+
+<button class="filterBtn" onclick="loadReports()">عرض التقرير</button>
+
+</div>
+
 
 <div class="cards">
 
@@ -103,6 +170,7 @@ text-align:center;
 
 </table>
 
+</div>
 
 <script>
 
@@ -116,10 +184,20 @@ const db=supabase.createClient(supabaseUrl,supabaseKey)
 
 async function loadReports(){
 
-let {data}=await db
-.from("sales")
-.select("*")
-.order("created_at",{ascending:false})
+let from=document.getElementById("fromDate").value
+let to=document.getElementById("toDate").value
+
+let query=db.from("sales").select("*").order("created_at",{ascending:false})
+
+if(from){
+query=query.gte("created_at",from)
+}
+
+if(to){
+query=query.lte("created_at",to+"T23:59:59")
+}
+
+let {data}=await query
 
 let cash=0
 let card=0
@@ -153,13 +231,9 @@ html+=`
 })
 
 document.getElementById("cash").innerText=cash
-
 document.getElementById("card").innerText=card
-
 document.getElementById("total").innerText=cash+card
-
 document.getElementById("count").innerText=data.length
-
 document.getElementById("salesTable").innerHTML=html
 
 }
