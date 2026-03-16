@@ -1,0 +1,172 @@
+```html
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>نقل المخزون</title>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:30px;
+direction:rtl;
+}
+
+select,input{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+border-radius:6px;
+border:none;
+}
+
+button{
+padding:12px;
+background:#22c55e;
+border:none;
+border-radius:6px;
+color:white;
+width:100%;
+cursor:pointer;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+max-width:500px;
+margin:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>نقل المخزون بين الفروع</h2>
+
+<select id="product"></select>
+
+<select id="fromBranch"></select>
+
+<select id="toBranch"></select>
+
+<input type="number" id="qty" placeholder="الكمية">
+
+<button onclick="transferStock()">نقل المخزون</button>
+
+</div>
+
+
+<script>
+
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
+
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+
+const db=supabase.createClient(supabaseUrl,supabaseKey)
+
+
+
+async function loadProducts(){
+
+let {data}=await db.from("products").select("*")
+
+let html=""
+
+data.forEach(p=>{
+html+=`<option value="${p.id}">${p.name}</option>`
+})
+
+document.getElementById("product").innerHTML=html
+
+}
+
+
+
+async function loadBranches(){
+
+let {data}=await db.from("branches").select("*")
+
+let html=""
+
+data.forEach(b=>{
+html+=`<option value="${b.id}">${b.name}</option>`
+})
+
+document.getElementById("fromBranch").innerHTML=html
+document.getElementById("toBranch").innerHTML=html
+
+}
+
+
+
+async function transferStock(){
+
+let productId=document.getElementById("product").value
+let fromBranch=document.getElementById("fromBranch").value
+let toBranch=document.getElementById("toBranch").value
+let qty=parseInt(document.getElementById("qty").value)
+
+
+
+let {data:from}=await db
+.from("inventory")
+.select("stock")
+.eq("product_id",productId)
+.eq("branch_id",fromBranch)
+.single()
+
+
+
+await db
+.from("inventory")
+.update({stock:from.stock - qty})
+.eq("product_id",productId)
+.eq("branch_id",fromBranch)
+
+
+
+let {data:to}=await db
+.from("inventory")
+.select("stock")
+.eq("product_id",productId)
+.eq("branch_id",toBranch)
+.single()
+
+
+
+await db
+.from("inventory")
+.update({stock:(to?.stock || 0)+qty})
+.eq("product_id",productId)
+.eq("branch_id",toBranch)
+
+
+
+alert("تم نقل المخزون بنجاح")
+
+}
+
+
+
+loadProducts()
+loadBranches()
+
+</script>
+
+</body>
+
+</html>
+```
