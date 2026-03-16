@@ -5,6 +5,7 @@
 <head>
 
 <meta charset="UTF-8">
+
 <title>تقارير المبيعات</title>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -17,22 +18,6 @@ background:#0f172a;
 color:white;
 padding:30px;
 direction:rtl;
-}
-
-.nav{
-background:#020617;
-padding:10px;
-display:flex;
-gap:20px;
-margin-bottom:20px;
-}
-
-.nav a{
-color:white;
-text-decoration:none;
-background:#1e293b;
-padding:8px 16px;
-border-radius:6px;
 }
 
 .cards{
@@ -53,11 +38,12 @@ font-size:20px;
 table{
 width:100%;
 border-collapse:collapse;
+background:#1e293b;
 }
 
-td,th{
-border:1px solid #334155;
+th,td{
 padding:10px;
+border-bottom:1px solid #334155;
 text-align:center;
 }
 
@@ -67,26 +53,26 @@ text-align:center;
 
 <body>
 
-<div class="nav">
-<a href="pos.html">البيع</a>
-<a href="products.html">المنتجات</a>
-<a href="reports.html">التقارير</a>
-</div>
-
 <h2>تقارير المبيعات</h2>
 
 <div class="cards">
 
 <div class="card">
-مبيعات اليوم
+المبيعات النقدية
 <br>
-<span id="today">0</span>
+<span id="cash">0</span>
 </div>
 
 <div class="card">
-مبيعات الأسبوع
+مبيعات الشبكة
 <br>
-<span id="week">0</span>
+<span id="card">0</span>
+</div>
+
+<div class="card">
+إجمالي المبيعات
+<br>
+<span id="total">0</span>
 </div>
 
 <div class="card">
@@ -95,95 +81,94 @@ text-align:center;
 <span id="count">0</span>
 </div>
 
-<div class="card">
-إجمالي الإيرادات
-<br>
-<span id="total">0</span>
 </div>
 
-</div>
+
+<h3>آخر الفواتير</h3>
 
 <table>
 
 <thead>
+
 <tr>
 <th>رقم الفاتورة</th>
 <th>الإجمالي</th>
 <th>طريقة الدفع</th>
 <th>التاريخ</th>
 </tr>
+
 </thead>
 
-<tbody id="sales"></tbody>
+<tbody id="salesTable"></tbody>
 
 </table>
 
+
 <script>
 
-const { createClient } = supabase;
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const db = createClient(
-"https://zspikbjjwdnsnzxlqueq.supabase.co",
-"sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
-);
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-loadReport();
+const db=supabase.createClient(supabaseUrl,supabaseKey)
 
-async function loadReport(){
 
-const {data}=await db.from("sales").select("*").order("created_at",{ascending:false});
 
-let today=0;
-let week=0;
-let total=0;
+async function loadReports(){
 
-let todayDate=new Date();
-let weekDate=new Date();
-weekDate.setDate(todayDate.getDate()-7);
+let {data}=await db
+.from("sales")
+.select("*")
+.order("created_at",{ascending:false})
+
+let cash=0
+let card=0
+
+let html=""
 
 data.forEach(s=>{
 
-let d=new Date(s.created_at);
-
-total+=s.total;
-
-if(d.toDateString()===todayDate.toDateString()){
-today+=s.total;
+if(s.payment_method=="cash"){
+cash+=s.total
+}else{
+card+=s.total
 }
-
-if(d>=weekDate){
-week+=s.total;
-}
-
-});
-
-document.getElementById("today").innerText=today;
-document.getElementById("week").innerText=week;
-document.getElementById("total").innerText=total;
-document.getElementById("count").innerText=data.length;
-
-let html="";
-
-data.slice(0,20).forEach(s=>{
 
 html+=`
+
 <tr>
+
 <td>${s.invoice_number}</td>
+
 <td>${s.total}</td>
+
 <td>${s.payment_method}</td>
+
 <td>${new Date(s.created_at).toLocaleString()}</td>
+
 </tr>
-`;
 
-});
+`
 
-document.getElementById("sales").innerHTML=html;
+})
+
+document.getElementById("cash").innerText=cash
+
+document.getElementById("card").innerText=card
+
+document.getElementById("total").innerText=cash+card
+
+document.getElementById("count").innerText=data.length
+
+document.getElementById("salesTable").innerHTML=html
 
 }
+
+loadReports()
 
 </script>
 
 </body>
+
 </html>
 ```
-
