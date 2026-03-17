@@ -157,7 +157,7 @@ text-align:center;
 
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const supabaseKey="YOUR_PUBLIC_ANON_KEY"
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
 const db=supabase.createClient(supabaseUrl,supabaseKey)
 
@@ -174,7 +174,14 @@ if(from) query=query.gte("created_at",from)
 
 if(to) query=query.lte("created_at",to+"T23:59:59")
 
-let {data}=await query
+let {data,error}=await query
+
+if(error){
+console.error(error)
+return
+}
+
+if(!data) return
 
 let total=0
 let cash=0
