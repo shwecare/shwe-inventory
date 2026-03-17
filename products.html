@@ -37,13 +37,9 @@ border-radius:6px;
 cursor:pointer;
 }
 
-.logout{
-background:#ef4444;
-}
+.logout{background:#ef4444;}
 
-.container{
-padding:20px;
-}
+.container{padding:20px;}
 
 input{
 padding:10px;
@@ -71,13 +67,9 @@ margin-top:10px;
 border-radius:8px;
 display:flex;
 justify-content:space-between;
-align-items:center;
 }
 
-.user{
-font-size:14px;
-opacity:0.8;
-}
+.user{font-size:14px;opacity:0.8;}
 
 </style>
 
@@ -100,10 +92,8 @@ opacity:0.8;
 </nav>
 
 <div>
-
 <span id="username" class="user"></span>
 <button class="logout" onclick="logout()">تسجيل الخروج</button>
-
 </div>
 
 </header>
@@ -135,7 +125,6 @@ if(!localStorage.getItem("role")){
 window.location.href="login.html"
 }
 
-/* بيانات المستخدم */
 let role = localStorage.getItem("role")
 let branch = localStorage.getItem("branch")
 
@@ -158,12 +147,12 @@ document.getElementById("addBtn").style.display="inline-block"
 document.getElementById("staffBtn").style.display="inline-block"
 }
 
-/* تحميل المنتجات */
+/* تحميل */
 async function loadProducts(){
 
 let query = db.from("products").select("*")
 
-// المدير يرى فقط فرعه
+// المدير يشوف فرعه فقط
 if(role==="manager"){
 query = query.eq("branch_id",branch)
 }
@@ -224,7 +213,7 @@ loadProducts()
 
 }
 
-/* تعديل السعر */
+/* تعديل */
 async function editPrice(id,current){
 
 let newPrice=prompt("السعر الجديد",current)
