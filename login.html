@@ -27,6 +27,12 @@ background:#1e293b;
 padding:40px;
 border-radius:10px;
 width:320px;
+box-shadow:0 0 15px rgba(0,0,0,0.4);
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
 }
 
 input{
@@ -35,6 +41,7 @@ padding:12px;
 margin-bottom:15px;
 border:none;
 border-radius:6px;
+font-size:14px;
 }
 
 button{
@@ -46,6 +53,10 @@ border-radius:6px;
 color:white;
 font-size:16px;
 cursor:pointer;
+}
+
+button:hover{
+background:#16a34a;
 }
 
 </style>
@@ -66,26 +77,22 @@ cursor:pointer;
 
 </div>
 
-
 <script>
 
-const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
+const supabaseUrl = "https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
-const db=supabase.createClient(supabaseUrl,supabaseKey)
-
-
+const db = supabase.createClient(supabaseUrl , supabaseKey)
 
 async function login(){
 
-let email=document.getElementById("email").value
-let password=document.getElementById("password").value
+let email = document.getElementById("email").value
+let password = document.getElementById("password").value
 
-
-let {data,error}=await db.auth.signInWithPassword({
-email:email,
-password:password
+let {data,error} = await db.auth.signInWithPassword({
+email: email,
+password: password
 })
 
 if(error){
@@ -93,24 +100,17 @@ alert("خطأ في تسجيل الدخول")
 return
 }
 
+let userId = data.user.id
 
-
-let userId=data.user.id
-
-
-let {data:user}=await db
+let {data:user} = await db
 .from("users")
 .select("*")
-.eq("id",userId)
+.eq("id", userId)
 .single()
 
-
-
-localStorage.setItem("user_name",user.name)
-localStorage.setItem("role",user.role)
-localStorage.setItem("branch",user.branch_id)
-
-
+localStorage.setItem("user_name", user.name)
+localStorage.setItem("role", user.role)
+localStorage.setItem("branch", user.branch_id)
 
 window.location.href="pos.html"
 
@@ -119,5 +119,6 @@ window.location.href="pos.html"
 </script>
 
 </body>
+
 </html>
 ```
