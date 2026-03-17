@@ -193,8 +193,6 @@ style="width:100%;padding:10px;margin-bottom:20px">
 
 <script>
 
-/* حماية الصفحة */
-
 if(!localStorage.getItem("role")){
 window.location.href="login.html"
 }
@@ -203,21 +201,16 @@ document.getElementById("username").innerText=
 "المستخدم: "+localStorage.getItem("user_name")
 
 
-
-/* تسجيل الخروج */
-
 function logout(){
-
 localStorage.clear()
 window.location.href="login.html"
-
 }
 
 
 
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
-const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+const supabaseKey="YOUR_PUBLIC_ANON_KEY"
 
 const db=supabase.createClient(supabaseUrl,supabaseKey)
 
@@ -415,20 +408,26 @@ localStorage.setItem("offline_sales",JSON.stringify(sales))
 async function sendSaleToServer(sale){
 
 await db.from("sales").insert({
+
 invoice_number:sale.invoice,
 total:sale.total,
 payment_method:sale.payment,
+
+user_id:localStorage.getItem("user_id"),
 user_name:localStorage.getItem("user_name"),
 branch_id:localStorage.getItem("branch")
+
 })
 
 for(let item of sale.items){
 
 await db.from("sale_items").insert({
+
 invoice_number:sale.invoice,
 product_id:item.id,
 quantity:item.quantity,
 price:item.price
+
 })
 
 }
@@ -558,12 +557,8 @@ w.print()
 
 
 if("serviceWorker" in navigator){
-
 navigator.serviceWorker.register("sw.js")
-
 }
-
-
 
 loadProducts()
 
