@@ -1,0 +1,272 @@
+```html
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+
+<meta charset="UTF-8">
+<title>إدارة الموظفين</title>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+direction:rtl;
+}
+
+header{
+background:#020617;
+padding:15px;
+display:flex;
+justify-content:space-between;
+}
+
+button{
+padding:8px 15px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.add{
+background:#22c55e;
+color:white;
+}
+
+.logout{
+background:#ef4444;
+color:white;
+}
+
+.container{
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #334155;
+text-align:center;
+}
+
+input,select{
+padding:8px;
+margin:5px;
+border-radius:5px;
+border:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div>
+
+<button onclick="location.href='pos.html'">البيع</button>
+<button onclick="location.href='products.html'">المنتجات</button>
+<button onclick="location.href='reports.html'">التقارير</button>
+
+</div>
+
+<div>
+
+<span id="username"></span>
+
+<button class="logout" onclick="logout()">تسجيل الخروج</button>
+
+</div>
+
+</header>
+
+
+
+<div class="container">
+
+<h2>إضافة موظف</h2>
+
+<input id="name" placeholder="اسم الموظف">
+
+<input id="email" placeholder="البريد الإلكتروني">
+
+<input id="password" type="password" placeholder="كلمة المرور">
+
+<select id="role">
+<option value="employee">موظف</option>
+<option value="manager">مدير فرع</option>
+</select>
+
+<select id="branch"></select>
+
+<button class="add" onclick="addUser()">إضافة</button>
+
+
+<h2>الموظفون</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>الاسم</th>
+<th>البريد</th>
+<th>الصلاحية</th>
+<th>الفرع</th>
+</tr>
+
+</thead>
+
+<tbody id="users"></tbody>
+
+</table>
+
+</div>
+
+
+
+<script>
+
+if(!localStorage.getItem("role")){
+window.location.href="login.html"
+}
+
+document.getElementById("username").innerText=
+"المستخدم: "+localStorage.getItem("user_name")
+
+const role=localStorage.getItem("role")
+const branch=localStorage.getItem("branch")
+
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
+
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+const db=supabase.createClient(supabaseUrl,supabaseKey)
+
+
+
+async function loadBranches(){
+
+let {data}=await db.from("branches").select("*")
+
+let html=""
+
+data.forEach(b=>{
+
+html+=`<option value="${b.id}">${b.name}</option>`
+
+})
+
+document.getElementById("branch").innerHTML=html
+
+}
+
+
+
+async function loadUsers(){
+
+let {data}=await db.from("users").select("*")
+
+let html=""
+
+data.forEach(u=>{
+
+html+=`
+
+<tr>
+
+<td>${u.name}</td>
+
+<td>${u.email}</td>
+
+<td>${u.role}</td>
+
+<td>${u.branch_id || "كل الفروع"}</td>
+
+</tr>
+
+`
+
+})
+
+document.getElementById("users").innerHTML=html
+
+}
+
+
+
+async function addUser(){
+
+let name=document.getElementById("name").value
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
+let userRole=document.getElementById("role").value
+let userBranch=document.getElementById("branch").value
+
+
+
+if(role!=="owner" && userRole==="manager"){
+alert("فقط المالك يستطيع تعيين مدير")
+return
+}
+
+
+
+let {data,error}=await db.auth.signUp({
+email:email,
+password:password
+})
+
+if(error){
+alert("خطأ في إنشاء المستخدم")
+return
+}
+
+let id=data.user.id
+
+await db.from("users").insert({
+id:id,
+name:name,
+email:email,
+role:userRole,
+branch_id:userBranch
+})
+
+alert("تم إضافة المستخدم")
+
+loadUsers()
+
+}
+
+
+
+function logout(){
+
+localStorage.clear()
+window.location.href="login.html"
+
+}
+
+
+
+loadBranches()
+loadUsers()
+
+</script>
+
+</body>
+
+</html>
+```
