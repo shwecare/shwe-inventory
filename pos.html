@@ -5,7 +5,6 @@
 <head>
 
 <meta charset="UTF-8">
-
 <title>نظام البيع POS</title>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -25,7 +24,9 @@ direction:rtl;
 header{
 background:#020617;
 padding:15px;
-text-align:center;
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
 nav button{
@@ -36,6 +37,10 @@ color:white;
 border:none;
 border-radius:6px;
 cursor:pointer;
+}
+
+.logout{
+background:#ef4444;
 }
 
 .container{
@@ -107,6 +112,11 @@ border-radius:4px;
 .minus{background:#ef4444;}
 .plus{background:#22c55e;}
 
+.user{
+font-size:14px;
+opacity:0.8;
+}
+
 </style>
 
 </head>
@@ -115,6 +125,8 @@ border-radius:4px;
 
 <header>
 
+<div>
+
 <nav>
 
 <button onclick="location.href='pos.html'">البيع</button>
@@ -122,6 +134,16 @@ border-radius:4px;
 <button onclick="location.href='reports.html'">التقارير</button>
 
 </nav>
+
+</div>
+
+<div>
+
+<span class="user" id="username"></span>
+
+<button class="logout" onclick="logout()">تسجيل الخروج</button>
+
+</div>
 
 </header>
 
@@ -170,6 +192,28 @@ style="width:100%;padding:10px;margin-bottom:20px">
 
 
 <script>
+
+/* حماية الصفحة */
+
+if(!localStorage.getItem("role")){
+window.location.href="login.html"
+}
+
+document.getElementById("username").innerText=
+"المستخدم: "+localStorage.getItem("user_name")
+
+
+
+/* تسجيل الخروج */
+
+function logout(){
+
+localStorage.clear()
+window.location.href="login.html"
+
+}
+
+
 
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
@@ -373,7 +417,9 @@ async function sendSaleToServer(sale){
 await db.from("sales").insert({
 invoice_number:sale.invoice,
 total:sale.total,
-payment_method:sale.payment
+payment_method:sale.payment,
+user_name:localStorage.getItem("user_name"),
+branch_id:localStorage.getItem("branch")
 })
 
 for(let item of sale.items){
