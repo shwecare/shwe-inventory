@@ -48,12 +48,14 @@ padding:20px;
 input{
 padding:10px;
 margin:5px;
+border:none;
+border-radius:6px;
 }
 
 button{
 padding:10px;
 border:none;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
 }
 
@@ -64,9 +66,11 @@ color:white;
 
 .product{
 background:#1e293b;
-padding:10px;
+padding:15px;
 margin-top:10px;
-border-radius:6px;
+border-radius:8px;
+display:flex;
+justify-content:space-between;
 }
 
 .user{
@@ -82,15 +86,28 @@ opacity:0.8;
 
 <header>
 
+<div>
+
 <nav>
+
 <button onclick="location.href='pos.html'">البيع</button>
 <button onclick="location.href='products.html'">المنتجات</button>
 <button onclick="location.href='reports.html'">التقارير</button>
+
+<button id="staffBtn" onclick="location.href='staff.html'" style="display:none">
+الموظفين
+</button>
+
 </nav>
 
+</div>
+
 <div>
+
 <span id="username" class="user"></span>
+
 <button class="logout" onclick="logout()">تسجيل الخروج</button>
+
 </div>
 
 </header>
@@ -119,30 +136,34 @@ opacity:0.8;
 
 <script>
 
-/* حماية */
+/* حماية الصفحة */
 if(!localStorage.getItem("role")){
 window.location.href="login.html"
 }
 
-document.getElementById("username").innerText=
-"المستخدم: "+localStorage.getItem("user_name")
+/* عرض المستخدم */
+document.getElementById("username").innerText =
+"المستخدم: " + localStorage.getItem("user_name")
 
+/* تسجيل الخروج */
 function logout(){
 localStorage.clear()
 window.location.href="login.html"
 }
 
+/* Supabase */
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
 
 const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
 
 const db=supabase.createClient(supabaseUrl,supabaseKey)
 
-/* صلاحيات */
+/* الصلاحيات */
 let role = localStorage.getItem("role")
 
 if(role === "owner" || role === "manager"){
 document.getElementById("addBtn").style.display="inline-block"
+document.getElementById("staffBtn").style.display="inline-block"
 }
 
 /* تحميل المنتجات */
@@ -153,11 +174,17 @@ let {data}=await db.from("products").select("*")
 let html=""
 
 data.forEach(p=>{
+
 html+=`
 <div class="product">
-${p.name} - السعر: ${p.price} - المخزون: ${p.stock}
+<div>
+<b>${p.name}</b><br>
+السعر: ${p.price}<br>
+المخزون: ${p.stock}
+</div>
 </div>
 `
+
 })
 
 document.getElementById("list").innerHTML=html
@@ -170,13 +197,18 @@ async function addProduct(){
 let role = localStorage.getItem("role")
 
 if(role !== "owner" && role !== "manager"){
-alert("غير مصرح")
+alert("غير مصرح لك")
 return
 }
 
 let name=document.getElementById("name").value
 let price=document.getElementById("price").value
 let stock=document.getElementById("stock").value
+
+if(!name || !price){
+alert("أدخل البيانات")
+return
+}
 
 await db.from("products").insert({
 name:name,
@@ -185,6 +217,10 @@ stock:stock
 })
 
 alert("تمت الإضافة")
+
+document.getElementById("name").value=""
+document.getElementById("price").value=""
+document.getElementById("stock").value=""
 
 loadProducts()
 
@@ -199,3 +235,4 @@ loadProducts()
 
 </html>
 ```
+
