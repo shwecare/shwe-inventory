@@ -15,53 +15,28 @@ body{
 font-family:Arial;
 background:#0f172a;
 color:white;
-padding:30px;
 direction:rtl;
 }
 
-.nav{
-background:#020617;
-padding:10px;
-display:flex;
-gap:20px;
-margin-bottom:20px;
-}
-
-.nav a{
-color:white;
-text-decoration:none;
-background:#1e293b;
-padding:8px 16px;
-border-radius:6px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
-
-td,th{
-border:1px solid #334155;
-padding:10px;
-text-align:center;
+.container{
+padding:20px;
 }
 
 input{
-padding:8px;
-width:100%;
+padding:10px;
+margin:5px;
 }
 
 button{
-padding:10px 15px;
+padding:10px;
 border:none;
-background:#22c55e;
-color:white;
+border-radius:5px;
 cursor:pointer;
 }
 
-.delete{
-background:#ef4444;
+.add{
+background:#22c55e;
+color:white;
 }
 
 </style>
@@ -70,116 +45,60 @@ background:#ef4444;
 
 <body>
 
-<div class="nav">
-<a href="pos.html">البيع</a>
-<a href="products.html">المنتجات</a>
-<a href="reports.html">التقارير</a>
-</div>
+<div class="container">
 
-<h2>إدارة المنتجات</h2>
+<h2>إضافة منتج</h2>
 
 <input id="name" placeholder="اسم المنتج">
 <input id="price" placeholder="السعر">
 <input id="stock" placeholder="المخزون">
-<input id="barcode" placeholder="الباركود">
 
-<button onclick="addProduct()">إضافة</button>
+<button id="addBtn" class="add" onclick="addProduct()" style="display:none">
+إضافة منتج
+</button>
 
-<table>
-
-<thead>
-<tr>
-<th>الاسم</th>
-<th>السعر</th>
-<th>المخزون</th>
-<th>الباركود</th>
-<th>حفظ</th>
-<th>حذف</th>
-</tr>
-</thead>
-
-<tbody id="products"></tbody>
-
-</table>
+</div>
 
 <script>
 
-const { createClient } = supabase;
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
+const supabaseKey="ضع_المفتاح_هنا"
+const db=supabase.createClient(supabaseUrl,supabaseKey)
 
-const db = createClient(
-"https://zspikbjjwdnsnzxlqueq.supabase.co",
-"sb_publishable_6kOF5m-53TFhOK_hwPRySA_b4kfqiw8"
-);
+let role = localStorage.getItem("role")
 
-loadProducts();
-
-async function loadProducts(){
-
-const {data}=await db.from("products").select("*");
-
-let html="";
-
-data.forEach(p=>{
-
-html+=`
-<tr>
-<td><input value="${p.name}" id="name_${p.id}"></td>
-<td><input value="${p.price}" id="price_${p.id}"></td>
-<td><input value="${p.stock}" id="stock_${p.id}"></td>
-<td><input value="${p.barcode ?? ""}" id="barcode_${p.id}"></td>
-
-<td><button onclick="saveProduct('${p.id}')">حفظ</button></td>
-<td><button class="delete" onclick="deleteProduct('${p.id}')">حذف</button></td>
-</tr>
-`;
-
-});
-
-document.getElementById("products").innerHTML=html;
-
+// إظهار الزر حسب الصلاحية
+if(role === "owner" || role === "manager"){
+document.getElementById("addBtn").style.display="inline-block"
 }
 
 async function addProduct(){
 
+let role = localStorage.getItem("role")
+
+if(role !== "owner" && role !== "manager"){
+alert("غير مصرح")
+return
+}
+
+let name=document.getElementById("name").value
+let price=document.getElementById("price").value
+let stock=document.getElementById("stock").value
+
 await db.from("products").insert({
+name:name,
+price:price,
+stock:stock
+})
 
-name:document.getElementById("name").value,
-price:document.getElementById("price").value,
-stock:document.getElementById("stock").value,
-barcode:document.getElementById("barcode").value
-
-});
-
-loadProducts();
-
-}
-
-async function saveProduct(id){
-
-await db.from("products").update({
-
-name:document.getElementById("name_"+id).value,
-price:document.getElementById("price_"+id).value,
-stock:document.getElementById("stock_"+id).value,
-barcode:document.getElementById("barcode_"+id).value
-
-}).eq("id",id);
-
-alert("تم التحديث");
-
-}
-
-async function deleteProduct(id){
-
-await db.from("products").delete().eq("id",id);
-
-loadProducts();
+alert("تمت الإضافة")
 
 }
 
 </script>
 
 </body>
+
 </html>
 ```
 
