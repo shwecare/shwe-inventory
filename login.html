@@ -1,0 +1,123 @@
+```html
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+
+<meta charset="UTF-8">
+<title>تسجيل الدخول</title>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+background:#0f172a;
+font-family:Arial;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+direction:rtl;
+}
+
+.box{
+background:#1e293b;
+padding:40px;
+border-radius:10px;
+width:320px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:6px;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#22c55e;
+border:none;
+border-radius:6px;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>تسجيل الدخول</h2>
+
+<input id="email" placeholder="البريد الإلكتروني">
+
+<input id="password" type="password" placeholder="كلمة المرور">
+
+<button onclick="login()">دخول</button>
+
+</div>
+
+
+<script>
+
+const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
+
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+const db=supabase.createClient(supabaseUrl,supabaseKey)
+
+
+
+async function login(){
+
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
+
+
+let {data,error}=await db.auth.signInWithPassword({
+email:email,
+password:password
+})
+
+if(error){
+alert("خطأ في تسجيل الدخول")
+return
+}
+
+
+
+let userId=data.user.id
+
+
+let {data:user}=await db
+.from("users")
+.select("*")
+.eq("id",userId)
+.single()
+
+
+
+localStorage.setItem("user_name",user.name)
+localStorage.setItem("role",user.role)
+localStorage.setItem("branch",user.branch_id)
+
+
+
+window.location.href="pos.html"
+
+}
+
+</script>
+
+</body>
+</html>
+```
