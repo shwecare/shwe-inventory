@@ -15,7 +15,30 @@ body{
 font-family:Arial;
 background:#0f172a;
 color:white;
+margin:0;
 direction:rtl;
+}
+
+header{
+background:#020617;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+nav button{
+margin:5px;
+padding:10px 20px;
+background:#1e293b;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.logout{
+background:#ef4444;
 }
 
 .container{
@@ -39,11 +62,39 @@ background:#22c55e;
 color:white;
 }
 
+.product{
+background:#1e293b;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+}
+
+.user{
+font-size:14px;
+opacity:0.8;
+}
+
 </style>
 
 </head>
 
 <body>
+
+<header>
+
+<nav>
+<button onclick="location.href='pos.html'">البيع</button>
+<button onclick="location.href='products.html'">المنتجات</button>
+<button onclick="location.href='reports.html'">التقارير</button>
+</nav>
+
+<div>
+<span id="username" class="user"></span>
+<button class="logout" onclick="logout()">تسجيل الخروج</button>
+</div>
+
+</header>
+
 
 <div class="container">
 
@@ -57,21 +108,63 @@ color:white;
 إضافة منتج
 </button>
 
+<hr>
+
+<h2>قائمة المنتجات</h2>
+
+<div id="list"></div>
+
 </div>
+
 
 <script>
 
+/* حماية */
+if(!localStorage.getItem("role")){
+window.location.href="login.html"
+}
+
+document.getElementById("username").innerText=
+"المستخدم: "+localStorage.getItem("user_name")
+
+function logout(){
+localStorage.clear()
+window.location.href="login.html"
+}
+
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
-const supabaseKey="ضع_المفتاح_هنا"
+
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+
 const db=supabase.createClient(supabaseUrl,supabaseKey)
 
+/* صلاحيات */
 let role = localStorage.getItem("role")
 
-// إظهار الزر حسب الصلاحية
 if(role === "owner" || role === "manager"){
 document.getElementById("addBtn").style.display="inline-block"
 }
 
+/* تحميل المنتجات */
+async function loadProducts(){
+
+let {data}=await db.from("products").select("*")
+
+let html=""
+
+data.forEach(p=>{
+html+=`
+<div class="product">
+${p.name} - السعر: ${p.price} - المخزون: ${p.stock}
+</div>
+`
+})
+
+document.getElementById("list").innerHTML=html
+
+}
+
+/* إضافة منتج */
 async function addProduct(){
 
 let role = localStorage.getItem("role")
@@ -93,7 +186,12 @@ stock:stock
 
 alert("تمت الإضافة")
 
+loadProducts()
+
 }
+
+/* تشغيل */
+loadProducts()
 
 </script>
 
@@ -101,4 +199,3 @@ alert("تمت الإضافة")
 
 </html>
 ```
-
