@@ -71,6 +71,13 @@ justify-content:space-between;
 
 .user{font-size:14px;opacity:0.8;}
 
+.error{
+background:#ef4444;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+}
+
 </style>
 
 </head>
@@ -114,6 +121,7 @@ justify-content:space-between;
 
 <h2>قائمة المنتجات</h2>
 
+<div id="errorBox"></div>
 <div id="list"></div>
 
 </div>
@@ -136,9 +144,11 @@ localStorage.clear()
 window.location.href="login.html"
 }
 
-/* Supabase */
+/* Supabase (المفتاح الكامل) */
 const supabaseUrl="https://zspikbjjwdnsnzxlqueq.supabase.co"
-const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+const supabaseKey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGlrYmpqd2Ruc256eGxxdWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzUyMDIsImV4cCI6MjA4ODkxMTIwMn0.9PErcgM0GhEqB4d3qucoaO7HgmpilFdrvURpBbqpwsI"
+
 const db=supabase.createClient(supabaseUrl,supabaseKey)
 
 /* الصلاحيات */
@@ -152,12 +162,22 @@ async function loadProducts(){
 
 let query = db.from("products").select("*")
 
-// المدير يشوف فرعه فقط
 if(role==="manager"){
 query = query.eq("branch_id",branch)
 }
 
-let {data}=await query
+let {data,error}=await query
+
+if(error){
+document.getElementById("errorBox").innerHTML =
+"<div class='error'>خطأ في الاتصال: "+error.message+"</div>"
+return
+}
+
+if(!data){
+document.getElementById("list").innerHTML="لا توجد بيانات"
+return
+}
 
 let html=""
 
@@ -201,6 +221,11 @@ return
 let name=document.getElementById("name").value
 let price=document.getElementById("price").value
 let stock=document.getElementById("stock").value
+
+if(!name || !price){
+alert("أدخل البيانات")
+return
+}
 
 await db.from("products").insert({
 name:name,
